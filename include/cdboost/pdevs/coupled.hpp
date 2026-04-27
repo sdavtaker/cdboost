@@ -27,7 +27,9 @@
 
 #pragma once
 
+#include <algorithm>
 #include <memory>
+#include <ranges>
 #include <utility>
 #include <vector>
 
@@ -131,22 +133,22 @@ public:
         for (auto& m : models) {
             if (auto mc = std::dynamic_pointer_cast<coupled<TIME, MSG>>(m)) {
                 auto desc = mc->get_description();
-                coupled<TIME, MSG>::_desc.models.append_range(desc.models);
-                coupled<TIME, MSG>::_desc.internal_coupling.append_range(desc.internal_coupling);
+                std::ranges::copy(desc.models, std::back_inserter(coupled<TIME, MSG>::_desc.models));
+                std::ranges::copy(desc.internal_coupling, std::back_inserter(coupled<TIME, MSG>::_desc.internal_coupling));
             } else {
                 coupled<TIME, MSG>::_desc.models.push_back(m);
             }
         }
         for (auto& in : eic) {
             if (auto mc = std::dynamic_pointer_cast<coupled<TIME, MSG>>(in)) {
-                coupled<TIME, MSG>::_desc.external_input_coupling.append_range(mc->get_description().external_input_coupling);
+                std::ranges::copy(mc->get_description().external_input_coupling, std::back_inserter(coupled<TIME, MSG>::_desc.external_input_coupling));
             } else {
                 coupled<TIME, MSG>::_desc.external_input_coupling.push_back(in);
             }
         }
         for (auto& out : eoc) {
             if (auto mc = std::dynamic_pointer_cast<coupled<TIME, MSG>>(out)) {
-                coupled<TIME, MSG>::_desc.external_output_coupling.append_range(mc->get_description().external_output_coupling);
+                std::ranges::copy(mc->get_description().external_output_coupling, std::back_inserter(coupled<TIME, MSG>::_desc.external_output_coupling));
             } else {
                 coupled<TIME, MSG>::_desc.external_output_coupling.push_back(out);
             }

@@ -249,7 +249,7 @@ public:
                     if (receiver->next() != _last && receiver->_inbox.size() == 0){
                         inminents_external.push_back(receiver);
                     }
-                    receiver->_inbox.append_range(_inbox);
+                    std::ranges::copy(_inbox, std::back_inserter(receiver->_inbox));
             }
             //collecting inputs and adding inminents models for internal transitions
             if (_last == _next) {
@@ -260,7 +260,7 @@ public:
                             if (receiver->next() != _last && receiver->_inbox.size() == 0){
                                 inminents_external.push_back(receiver);
                             }
-                            receiver->_inbox.append_range(out);
+                            std::ranges::copy(out, std::back_inserter(receiver->_inbox));
                         }
                     }
                 }
@@ -312,7 +312,7 @@ public:
         for (auto& co : _inminents){
             if (co->next() == t && co->_is_connected_to_out){
                 std::vector<MSG> tmp = co->collectOutputs(t);
-                vm.append_range(tmp);
+                std::ranges::copy(tmp, std::back_inserter(vm));
             }
         }
         return vm;
@@ -487,7 +487,7 @@ public:
                     if (receiver->next() != _last && receiver->_inbox.size() == 0){ // was == 0
                         inminents_external.push_back(receiver);
                     }
-                    receiver->_inbox.append_range(_inbox);
+                    std::ranges::copy(_inbox, std::back_inserter(receiver->_inbox));
             }
             //collecting inputs and adding inminents models for internal transitions
             if (_last == _next) {
@@ -500,7 +500,7 @@ public:
                                     if (receiver->next() != _last && receiver->_inbox.size() == 0){
                                         inminents_external.push_back(receiver);
                                     }
-                                    receiver->_inbox.append_range(out);
+                                    std::ranges::copy(out, std::back_inserter(receiver->_inbox));
                             }
                         }
                     }
@@ -544,7 +544,7 @@ public:
         for (auto& co : _subcoordinators){
             if (co->next() == t && co->_is_connected_to_out){
                 std::vector<MSG> tmp = co->collectOutputs(t);
-                vm.append_range(tmp);
+                std::ranges::copy(tmp, std::back_inserter(vm));
             }
         }
         return vm;

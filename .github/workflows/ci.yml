@@ -23,12 +23,6 @@ jobs:
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
 
-      - name: Verify C++23 append_range support
-        run: |
-          g++-14 --version
-          printf '#include <vector>\n#include <ranges>\nint main(){std::vector<int>v;std::vector<int>s{1,2};v.append_range(s);}\n' \
-            | g++-14 -std=c++23 -x c++ - -o /dev/null && echo "append_range OK" || echo "append_range FAILED"
-
       - name: Set up vcpkg
         run: |
           git clone https://github.com/microsoft/vcpkg.git $VCPKG_ROOT
@@ -46,11 +40,10 @@ jobs:
           cmake -B build \
             -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_COMPILER=g++-14 \
-            -DCMAKE_VERBOSE_MAKEFILE=ON
+            -DCMAKE_CXX_COMPILER=g++-14
 
       - name: Build
-        run: cmake --build build --parallel -- VERBOSE=1
+        run: cmake --build build --parallel
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
