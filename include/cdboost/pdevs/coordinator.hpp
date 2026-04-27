@@ -28,10 +28,11 @@
 #pragma once
 
 #include <algorithm>
-#include <stdexcept>
 #include <map>
 #include <memory>
 #include <queue>
+#include <ranges>
+#include <stdexcept>
 #include <vector>
 
 #include <cdboost/pdevs/coupled.hpp>
@@ -96,7 +97,7 @@ public:
      * @brief Coordinator constructs from an PCoupled model.
      * @param a pointer to the Coupled model simulated.
      */
-    explicit coordinator(std::shared_ptr<coupled<TIME, MSG>> c) noexcept
+    explicit coordinator(std::shared_ptr<coupled<TIME, MSG>> c)
         : _model(nullptr), _is_connected_to_out(false), _internal_connections(), infinity(c->infinity)
     {
        //initialize FEL
@@ -349,7 +350,7 @@ public:
      * @brief Coordinator constructs from an PCoupled model.
      * @param a pointer to the Coupled model simulated.
      */
-    explicit coordinator(std::shared_ptr<coupled<TIME, MSG>> c) noexcept
+    explicit coordinator(std::shared_ptr<coupled<TIME, MSG>> c)
         : _model(nullptr), _is_connected_to_out(false), _internal_connections(), infinity(c->infinity)
     {
        auto desc = c->get_description();
