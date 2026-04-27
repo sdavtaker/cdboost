@@ -1,6 +1,5 @@
 /**
- * Copyright (c) 2013-2015, Damian Vicino & Daniella Niyonkuru
- * Modified by Daniella Niyonkuru for Embedded-CD Boost
+ * Copyright (c) 2013-2015, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -32,8 +31,6 @@
 #include <boost/simulation/pdevs/atomic.hpp>
 #include <boost/simulation/pdevs/coordinator.hpp>
 #include <boost/simulation/pdevs/coupled.hpp>
-#include <boost/simulation/pdevs/erunner.hpp>
-#include <boost/simulation/pdevs/driver.hpp>
 #include <boost/simulation/convenience.hpp>
 #include <boost/simulation/pdevs/basic_models/event_stream.hpp>
 

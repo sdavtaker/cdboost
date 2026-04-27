@@ -1,6 +1,5 @@
 /**
- * Copyright (c) 2013-2015, Damian Vicino, Daniella Niyonkuru
- * Modified by Daniella Niyonkuru for the Embedded CDBoost version
+ * Copyright (c) 2013-2015, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -441,14 +440,6 @@ public:
         return _next;
     }
     /**
-     * @brief postHardwareEvent adds a message to the inbox of a coordinator. This action is too be triggered by the runner.
-     * @param m is the message to be added to the inbox.
-     * @return void.
-     */
-    void postHardwareEvent(MSG m)noexcept{
-    	_inbox.push_back(m); // considering we are pushing one event now (Embedded CD-Boost)
-    }
-    /**
      * @brief advanceSimulation advances the execution to t, at t introduces the messages into the system (if any).
      * @param t is the time the transition is expected to be run.
      * @return the time until next internal event.
@@ -460,7 +451,6 @@ public:
         _processed_advances++; //invalidate cached output
         //if model is atomic - this is a simulator -> Execute Simulator algos
         if (_model != nullptr){
-        	_model->print();
             assert(t >= _last);
             assert(t <= _next );
             if (_inbox.empty()){
