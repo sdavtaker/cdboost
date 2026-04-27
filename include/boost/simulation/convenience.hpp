@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2013-2015, Damian Vicino & Daniella Niyonkuru
+ * Copyright (c) 2013-present, Damian Vicino & Daniella Niyonkuru
  * Modified by Daniella Niyonkuru (21/7/15 -> Port addition)
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
