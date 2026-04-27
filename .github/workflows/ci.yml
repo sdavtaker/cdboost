@@ -55,6 +55,49 @@ jobs:
           build/example/echobox        > example-output/echobox.txt
           build/example/custom-event-list > example-output/custom-event-list.txt
 
+      - name: Validate example output
+        run: |
+          fail=0
+
+          check_contains() {
+            local file="$1" pattern="$2"
+            if ! grep -qF "$pattern" "$file"; then
+              echo "FAIL $file: missing '$pattern'"
+              fail=1
+            fi
+          }
+          check_lines() {
+            local file="$1" expected="$2"
+            local actual
+            actual=$(wc -l < "$file")
+            if [ "$actual" -ne "$expected" ]; then
+              echo "FAIL $file: expected $expected lines, got $actual"
+              fail=1
+            fi
+          }
+
+          # clock: 7200s simulation with rational time, hour/minute needle crossings
+          check_lines   example-output/clock.txt 7325
+          check_contains example-output/clock.txt "Starting simulation until time:7200/1seconds"
+          check_contains example-output/clock.txt "60/1 minute"
+          check_contains example-output/clock.txt "Finished simulation with time: 7200/1sec"
+
+          # echobox: two echo atomics coupled, events piped from stream
+          check_lines   example-output/echobox.txt 19
+          check_contains example-output/echobox.txt "Creating the atomic models for the 2 echos"
+          check_contains example-output/echobox.txt "Simulation took:"
+
+          # custom-event-list: istream model consumes hello/world events
+          check_lines   example-output/custom-event-list.txt 11
+          check_contains example-output/custom-event-list.txt "1 hello"
+          check_contains example-output/custom-event-list.txt "Finished simulation"
+
+          if [ "$fail" -ne 0 ]; then
+            echo "One or more output validation checks failed."
+            exit 1
+          fi
+          echo "All output validation checks passed."
+
       - name: Upload example output
         uses: actions/upload-artifact@v4
         with:
