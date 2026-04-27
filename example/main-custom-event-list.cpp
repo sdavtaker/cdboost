@@ -52,7 +52,7 @@ int main(){
     // We need to convert those to double and std::any, the process function is called
     // in each line to extract one time and one message at the time.
 
-    auto pf = make_atomic_ptr<istream<double, std::any, int, string>, shared_ptr<istringstream>, double>(piss, double(0),
+    auto pf = make_atomic_ptr<input_stream<double, std::any, int, string>, shared_ptr<istringstream>, double>(piss, double(0),
                 [](const string& s, double& t_next, std::any& m_next)->void{ //parsing function
             //intermediary vars for casting
             int tmp_next;
