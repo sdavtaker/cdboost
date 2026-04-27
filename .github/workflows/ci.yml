@@ -47,3 +47,16 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
+
+      - name: Run examples
+        run: |
+          mkdir -p example-output
+          build/example/clock          > example-output/clock.txt
+          build/example/echobox        > example-output/echobox.txt
+          build/example/custom-event-list > example-output/custom-event-list.txt
+
+      - name: Upload example output
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-output
+          path: example-output/

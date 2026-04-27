@@ -28,7 +28,7 @@
 #pragma once
 
 #include <algorithm>
-#include <cassert>
+#include <stdexcept>
 #include <map>
 #include <memory>
 #include <queue>
@@ -123,7 +123,7 @@ public:
            std::shared_ptr<coupled<TIME, MSG>> m_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(m);
 
            if (m_atomic == nullptr){
-               assert(m_coupled != nullptr);
+               if (m_coupled == nullptr) throw std::logic_error("model is neither atomic nor coupled");
                auto coord = std::make_shared<coordinator<TIME, MSG, FEL>>(m_coupled);
                coord->_is_connected_to_out=to_external_out;
                _subcoordinators.push_back(coord);
@@ -139,7 +139,6 @@ public:
        //internal connections
        for (auto& m : desc.models){
            std::vector<std::shared_ptr<coordinator<TIME, MSG, FEL>>> to_internals;
-           to_internals.clear();
            for (auto& ints : desc.internal_coupling){
 
                if (ints.first.get() ==  m.get()){
@@ -148,7 +147,7 @@ public:
                    std::shared_ptr<coupled<TIME, MSG>> int_sec_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(ints.second);
 
                    if(int_sec_atomic == nullptr){ //coupled model destination
-                       assert(int_sec_coupled != nullptr);
+                       if (int_sec_coupled == nullptr) throw std::logic_error("internal coupling destination is neither atomic nor coupled");
                        to_internals.push_back(model_to_container[int_sec_coupled.get()]);
                    } else { //destination atomic
                        to_internals.push_back(model_to_container[int_sec_atomic.get()]);
@@ -209,16 +208,16 @@ public:
      * @param t is the time the transition is expected to be run.
      * @return the time until next internal event.
      */
-    void advanceSimulation(const TIME& t) noexcept { //bag of input was collected in _inbox internal var.
+    void advanceSimulation(const TIME& t) { //bag of input was collected in _inbox internal var.
         //if model is simulated in this coordinator
     	// For debug purposes only
     	/*
-    	SWO_PrintString((_model->asString()).c_str());
+    	SWO_PrintString((_model->as_string()).c_str());
     	SWO_PrintString(" - Advance Execution Call \n");
     	*/
         if (_model != nullptr){
-            assert(t >= _last);
-            assert(t <= _next );
+            if (t < _last) throw std::logic_error("advance time precedes last simulated time");
+            if (t > _next) throw std::logic_error("advance time exceeds next scheduled event");
             if (_inbox.empty()){
                 if (t == _next){
                     _model->internal();
@@ -239,8 +238,8 @@ public:
                 }
             }
         } else {  //if coordinator is pure and no model is simulated
-            assert(t <= _next);
-            assert(t >= _last);
+            if (t > _next) throw std::logic_error("advance time exceeds next scheduled event");
+            if (t < _last) throw std::logic_error("advance time precedes last simulated time");
             _last = t;
             //std::vector<std::shared_ptr<PCoordinator<TIME, MSG, FEL>>> inminents_internal;
             std::vector<std::shared_ptr<coordinator<TIME, MSG, FEL>>> inminents_external;
@@ -300,7 +299,7 @@ public:
     std::vector<MSG> collectOutputs(const TIME& t) noexcept {
     	// For debug purposes only
     	/*
-    	SWO_PrintString((_model->asString()).c_str());
+    	SWO_PrintString((_model->as_string()).c_str());
     	SWO_PrintString(" - Collect Outputs Call \n");
         */
         if (_next != t) return {}; //not my turn
@@ -370,7 +369,7 @@ public:
            std::shared_ptr<atomic<TIME, MSG>> m_atomic = std::dynamic_pointer_cast<atomic<TIME, MSG>>(m);
            std::shared_ptr<coupled<TIME, MSG>> m_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(m);
            if ( m_atomic == nullptr){
-               assert(m_coupled != nullptr);
+               if (m_coupled == nullptr) throw std::logic_error("model is neither atomic nor coupled");
                auto coord = std::make_shared<coordinator<TIME, MSG, nullqueue>>(m_coupled);
                coord->_is_connected_to_out=to_external_out;
                _subcoordinators.push_back(coord);
@@ -386,14 +385,13 @@ public:
        //internal connections
        for (auto& m : desc.models){
            std::vector<std::shared_ptr<coordinator<TIME, MSG, nullqueue>>> to_internals;
-           to_internals.clear();
            for (auto& ints : desc.internal_coupling){
                if (ints.first.get() ==  m.get() ){
                    //inserting destination
                    std::shared_ptr<atomic<TIME, MSG>> int_sec_atomic = std::dynamic_pointer_cast<atomic<TIME, MSG>>(ints.second);
                    std::shared_ptr<coupled<TIME, MSG>> int_sec_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(ints.second);
                    if(int_sec_atomic == nullptr){ //coupled model destination
-                       assert(int_sec_coupled != nullptr);
+                       if (int_sec_coupled == nullptr) throw std::logic_error("internal coupling destination is neither atomic nor coupled");
                        to_internals.push_back(model_to_container[int_sec_coupled.get()]);
                    } else { //destination atomic
                        to_internals.push_back(model_to_container[int_sec_atomic.get()]);
@@ -445,21 +443,21 @@ public:
      * @param t is the time the transition is expected to be run.
      * @return the time until next internal event.
      */
-    void advanceSimulation(const TIME& t) noexcept { //bag of input was collected in _inbox internal var.
+    void advanceSimulation(const TIME& t) { //bag of input was collected in _inbox internal var.
     	// For debug purposes only
     	//SWO_PrintString(" - advance_execution()::");
 
         _processed_advances++; //invalidate cached output
         //if model is atomic - this is a simulator -> Execute Simulator algos
         if (_model != nullptr){
-            assert(t >= _last);
-            assert(t <= _next );
+            if (t < _last) throw std::logic_error("advance time precedes last simulated time");
+            if (t > _next) throw std::logic_error("advance time exceeds next scheduled event");
             if (_inbox.empty()){
                 if (t == _next){
                     _model->internal();
                     _last = t;
                     _next = _last + _model->advance();
-                    //SWO_PrintString(("\t model->internal() model->advance(): " + _model->advance().asString() + " \n").c_str());
+                    //SWO_PrintString(("\t model->internal() model->advance(): " + _model->advance().as_string() + " \n").c_str());
                 } else {
 //                    throw std::exception();
                     _last = t;
@@ -474,12 +472,12 @@ public:
                     _model->external(_inbox, t-_last);
                     _last = t;
                     _next = _last + _model->advance();
-                    //SWO_PrintString(("\t model->external() model->advance(): " + _model->advance().asString() + " \n").c_str());
+                    //SWO_PrintString(("\t model->external() model->advance(): " + _model->advance().as_string() + " \n").c_str());
                 }
             }
         } else {  ////if model is coupled- this is a pure coordinator -> Execute Coordinator algos
-            assert(t <= _next);
-            assert(t >= _last);
+            if (t > _next) throw std::logic_error("advance time exceeds next scheduled event");
+            if (t < _last) throw std::logic_error("advance time precedes last simulated time");
             _last = t;
             std::vector<std::shared_ptr<coordinator<TIME, MSG, nullqueue>>> inminents_internal;
             std::vector<std::shared_ptr<coordinator<TIME, MSG, nullqueue>>> inminents_external;

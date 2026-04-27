@@ -27,7 +27,6 @@
 #pragma once
 
 #include <limits>
-#include <string>
 
 namespace cdboost {
 
@@ -46,8 +45,7 @@ struct time_inf {
 template<class TIME>
 class model {
   public:
-    virtual void registerDebugParameters(std::string name) noexcept {}
-
+    virtual ~model() = default;
     const TIME infinity = time_inf<TIME>::value();
 };
 

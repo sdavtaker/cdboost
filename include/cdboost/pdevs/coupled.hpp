@@ -111,156 +111,62 @@ template<class TIME, class MSG>
 class flattened_coupled : public coupled<TIME, MSG>
 {
 public:
-    /**
-     * @brief Coupled receives the whole coupled model spec
-     * Each time a couple model is received it is exploted and put its components in current level.
-     */
     flattened_coupled(std::initializer_list<std::shared_ptr<model<TIME>>> models,
             std::initializer_list<std::shared_ptr<model<TIME>>> eic,
             std::initializer_list<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>> ic,
-            std::initializer_list<std::shared_ptr<model<TIME>>> eoc
-                          ) : coupled<TIME, MSG>({}, {}, {}, {})
-    {
-        for ( auto& model : models){
-            std::shared_ptr<coupled<TIME, MSG>> m_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(model);
-            if ( m_coupled == nullptr){ //an atomic
-                coupled<TIME, MSG>::_desc.models.push_back(model);
-            } else { //a coupled
-                //inserting internal models
-                for (auto& submodel : m_coupled->get_description().models){
-                    coupled<TIME, MSG>::_desc.models.push_back(submodel);
-                }
-                //mantaining internal coups in submodels
-                for (auto& subic : m_coupled->get_description().internal_coupling){
-                    coupled<TIME, MSG>::_desc.internal_coupling.push_back(subic);
-                }
-            }
-        }
-        //connecting input links
-        for (auto& in : eic){
-            std::shared_ptr<coupled<TIME, MSG>> m_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(in);
-            if ( m_coupled == nullptr){ //an atomic
-                coupled<TIME, MSG>::_desc.external_input_coupling.push_back(in);
-            } else {
-                for (auto& subin : m_coupled->get_description().external_input_coupling){
-                    coupled<TIME, MSG>::_desc.external_input_coupling.push_back(subin);
-                }
-            }
-        }
-        //connecting output links
-        for (auto& out : eoc){
-            std::shared_ptr<coupled<TIME, MSG>> m_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(out);
-            if ( m_coupled == nullptr){ //an atomic
-                coupled<TIME, MSG>::_desc.external_output_coupling.push_back(out);
-            } else {
-                for (auto& subout : m_coupled->get_description().external_output_coupling){
-                    coupled<TIME, MSG>::_desc.external_output_coupling.push_back(subout);
-                }
-            }
-        }
-        //connecting internal links
-        for (auto& coupling : ic){
-            std::shared_ptr<coupled<TIME, MSG>> m_left = std::dynamic_pointer_cast<coupled<TIME, MSG>>(coupling.first);
-            std::shared_ptr<coupled<TIME, MSG>> m_right = std::dynamic_pointer_cast<coupled<TIME, MSG>>(coupling.second);
-            if ( m_left == nullptr){ //left is an atomic
-                if (m_right == nullptr) { //and right is an atomic
-                    coupled<TIME, MSG>::_desc.internal_coupling.push_back(coupling);
-                } else { //and right is a coupled
-                    for (auto& right_in : m_right->get_description().external_input_coupling){
-                        coupled<TIME, MSG>::_desc.internal_coupling.push_back({coupling.first, right_in});
-                    }
-                }
-            } else { // left is a coupled
-                if (m_right == nullptr){ //and right is atomic
-                    for (auto& subout : m_left->get_description().external_output_coupling){
-                        coupled<TIME, MSG>::_desc.internal_coupling.push_back({subout, m_right});
-                    }
-                } else { // and right is coupled
-                    for (auto& left_out : m_left->get_description().external_output_coupling){
-                        for (auto& right_in : m_right->get_description().external_input_coupling){
-                            coupled<TIME, MSG>::_desc.internal_coupling.push_back({left_out, right_in});
-                        }
-                    }
-                }
-            }
+            std::initializer_list<std::shared_ptr<model<TIME>>> eoc)
+        : flattened_coupled(
+            std::vector<std::shared_ptr<model<TIME>>>(models),
+            std::vector<std::shared_ptr<model<TIME>>>(eic),
+            std::vector<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>>(ic),
+            std::vector<std::shared_ptr<model<TIME>>>(eoc))
+    {}
 
-        }
-    }
-    /**
-     * @brief Coupled receives the whole coupled model spec
-     * Each time a couple model is received it is exploted and put its components in current level.
-     * The difference with the other constructor is the use of vectors in place of initilizer_lists
-     * for the case where the initializer_list can not be constructed (because using dynamic construction or MS compiler).
-     */
     flattened_coupled(std::vector<std::shared_ptr<model<TIME>>> models,
             std::vector<std::shared_ptr<model<TIME>>> eic,
             std::vector<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>> ic,
             std::vector<std::shared_ptr<model<TIME>>> eoc
              ) : coupled<TIME, MSG>({}, {}, {}, {})
     {
-        for ( auto& model : models){
-            std::shared_ptr<coupled<TIME, MSG>> m_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(model);
-            if ( m_coupled == nullptr){ //an atomic
-                coupled<TIME, MSG>::_desc.models.push_back(model);
-            } else { //a coupled
-                //inserting internal models
-                for (auto& submodel : m_coupled->get_description().models){
-                    coupled<TIME, MSG>::_desc.models.push_back(submodel);
-                }
-                //mantaining internal coups in submodels
-                for (auto& subic : m_coupled->get_description().internal_coupling){
-                    coupled<TIME, MSG>::_desc.internal_coupling.push_back(subic);
-                }
+        for (auto& m : models) {
+            if (auto mc = std::dynamic_pointer_cast<coupled<TIME, MSG>>(m)) {
+                auto desc = mc->get_description();
+                coupled<TIME, MSG>::_desc.models.append_range(desc.models);
+                coupled<TIME, MSG>::_desc.internal_coupling.append_range(desc.internal_coupling);
+            } else {
+                coupled<TIME, MSG>::_desc.models.push_back(m);
             }
         }
-        //connecting input links
-        for (auto& in : eic){
-            std::shared_ptr<coupled<TIME, MSG>> m_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(in);
-            if ( m_coupled == nullptr){ //an atomic
+        for (auto& in : eic) {
+            if (auto mc = std::dynamic_pointer_cast<coupled<TIME, MSG>>(in)) {
+                coupled<TIME, MSG>::_desc.external_input_coupling.append_range(mc->get_description().external_input_coupling);
+            } else {
                 coupled<TIME, MSG>::_desc.external_input_coupling.push_back(in);
-            } else {
-                for (auto& subin : m_coupled->get_description().external_input_coupling){
-                    coupled<TIME, MSG>::_desc.external_input_coupling.push_back(subin);
-                }
             }
         }
-        //connecting output links
-        for (auto& out : eoc){
-            std::shared_ptr<coupled<TIME, MSG>> m_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(out);
-            if ( m_coupled == nullptr){ //an atomic
+        for (auto& out : eoc) {
+            if (auto mc = std::dynamic_pointer_cast<coupled<TIME, MSG>>(out)) {
+                coupled<TIME, MSG>::_desc.external_output_coupling.append_range(mc->get_description().external_output_coupling);
+            } else {
                 coupled<TIME, MSG>::_desc.external_output_coupling.push_back(out);
-            } else {
-                for (auto& subout : m_coupled->get_description().external_output_coupling){
-                    coupled<TIME, MSG>::_desc.external_output_coupling.push_back(subout);
-                }
             }
         }
-        //connecting internal links
-        for (auto& coupling : ic){
-            std::shared_ptr<coupled<TIME, MSG>> m_left = std::dynamic_pointer_cast<coupled<TIME, MSG>>(coupling.first);
-            std::shared_ptr<coupled<TIME, MSG>> m_right = std::dynamic_pointer_cast<coupled<TIME, MSG>>(coupling.second);
-            if ( m_left == nullptr){ //left is an atomic
-                if (m_right == nullptr) { //and right is an atomic
-                    coupled<TIME, MSG>::_desc.internal_coupling.push_back(coupling);
-                } else { //and right is a coupled
-                    for (auto& right_in : m_right->get_description().external_input_coupling){
-                        coupled<TIME, MSG>::_desc.internal_coupling.push_back({coupling.first, right_in});
-                    }
-                }
-            } else { // left is a coupled
-                if (m_right == nullptr){ //and right is atomic
-                    for (auto& subout : m_left->get_description().external_output_coupling){
-                        coupled<TIME, MSG>::_desc.internal_coupling.push_back({subout, m_right});
-                    }
-                } else { // and right is coupled
-                    for (auto& left_out : m_left->get_description().external_output_coupling){
-                        for (auto& right_in : m_right->get_description().external_input_coupling){
-                            coupled<TIME, MSG>::_desc.internal_coupling.push_back({left_out, right_in});
-                        }
-                    }
-                }
+        for (auto& [left, right] : ic) {
+            auto ml = std::dynamic_pointer_cast<coupled<TIME, MSG>>(left);
+            auto mr = std::dynamic_pointer_cast<coupled<TIME, MSG>>(right);
+            if (!ml && !mr) {
+                coupled<TIME, MSG>::_desc.internal_coupling.push_back({left, right});
+            } else if (!ml) {
+                for (auto& ri : mr->get_description().external_input_coupling)
+                    coupled<TIME, MSG>::_desc.internal_coupling.push_back({left, ri});
+            } else if (!mr) {
+                for (auto& lo : ml->get_description().external_output_coupling)
+                    coupled<TIME, MSG>::_desc.internal_coupling.push_back({lo, right});
+            } else {
+                for (auto& lo : ml->get_description().external_output_coupling)
+                    for (auto& ri : mr->get_description().external_input_coupling)
+                        coupled<TIME, MSG>::_desc.internal_coupling.push_back({lo, ri});
             }
-
         }
     }
     /**

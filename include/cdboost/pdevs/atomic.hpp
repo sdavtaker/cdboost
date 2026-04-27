@@ -50,7 +50,7 @@ class atomic : public model<TIME> {
     virtual void external(const std::vector<MSG>& mb, const TIME& t) = 0;
     virtual void confluence(const std::vector<MSG>& mb, const TIME& t) = 0;
 
-    const std::string asString() const { return modelName; }
+    const std::string as_string() const { return modelName; }
     virtual void print() noexcept {}
 
   private:
