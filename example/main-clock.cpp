@@ -28,9 +28,11 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
+#include <boost/rational.hpp>
+
 #include <cdboost/cdboost.hpp>
 #include <cdboost/pdevs/basic_models/generator.hpp>
-#include <boost/rational.hpp>
+#include <cdboost/rational_time.hpp>
 
 using namespace cdboost;
 using namespace cdboost::pdevs;

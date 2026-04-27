@@ -29,6 +29,7 @@
 #include <any>
 #include <boost/rational.hpp>
 
+#include <cdboost/rational_time.hpp>
 #include <cdboost/pdevs/basic_models/generator.hpp>
 
 using namespace cdboost::pdevs::basic_models;

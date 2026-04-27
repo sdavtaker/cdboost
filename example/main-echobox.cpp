@@ -28,6 +28,8 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
+#include <any>
+
 #include <cdboost/cdboost.hpp>
 #include <cdboost/pdevs/basic_models/processor.hpp>
 
@@ -52,7 +54,7 @@ int main(){
     cout << "Creating the model to insert the input from stream" << endl;
     auto piss = make_shared<istringstream>();
     piss->str("1 1 \n 4 4 \n 5 5 \n 6 6 \n 8 8 \n 9 9 ");
-    auto pf = make_atomic_ptr<istream<double, std::any, int, int>, shared_ptr<istringstream>, double>(piss, double{0});
+    auto pf = make_atomic_ptr<input_stream<double, std::any, int, int>, shared_ptr<istringstream>, double>(piss, double{0});
 
     cout << "Coupling the echobox to the input" << endl;
     shared_ptr<coupled<double, std::any>> root( new coupled<double, std::any>{{pf, echobox}, {}, {{pf, echobox}}, {echobox}});

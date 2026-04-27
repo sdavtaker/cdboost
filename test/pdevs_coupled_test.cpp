@@ -34,6 +34,7 @@
 #include <any>
 #include <boost/rational.hpp>
 
+#include <cdboost/rational_time.hpp>
 #include <cdboost/convenience.hpp>
 #include <cdboost/pdevs/basic_models/generator.hpp>
 #include <cdboost/pdevs/basic_models/infinite_counter.hpp>

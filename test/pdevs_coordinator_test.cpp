@@ -241,5 +241,7 @@ TEST_CASE("coordinator nq: confluence not called when generator output precedes 
     auto reply = c->collectOutputs(t);
     c->advanceSimulation(Time{2});
     CHECK(reply.empty());
-    c->advanceSimulation(Time{4});
+    // At t=4, pg fires again simultaneously with pp/pt — that is valid confluence,
+    // not what this test covers. Just verify the next event is at t=4.
+    CHECK(c->next() == Time{4});
 }

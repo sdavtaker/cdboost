@@ -26,16 +26,29 @@
 
 #pragma once
 
+#include <limits>
 #include <string>
 
 namespace cdboost {
+
+// Customization point: specialize to provide infinity for TIME types that lack
+// std::numeric_limits<TIME>::infinity() (e.g. boost::rational).
+template<class TIME>
+struct time_inf {
+    static TIME value() {
+        if constexpr (std::numeric_limits<TIME>::has_infinity)
+            return std::numeric_limits<TIME>::infinity();
+        else
+            return TIME::Inf();
+    }
+};
 
 template<class TIME>
 class model {
   public:
     virtual void registerDebugParameters(std::string name) noexcept {}
 
-    const TIME infinity = TIME::Inf();
+    const TIME infinity = time_inf<TIME>::value();
 };
 
 }  // namespace cdboost
