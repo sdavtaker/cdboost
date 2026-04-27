@@ -24,12 +24,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef BOOST_SIMULATION_PDEVS_RUNNER_H
-#define BOOST_SIMULATION_PDEVS_RUNNER_H
+#pragma once
 
 #include <iostream>
+#include <memory>
+#include <vector>
+
 #include <boost/simulation/pdevs/coordinator.hpp>
-#include <boost/any.hpp>
 
 namespace boost {
 namespace simulation {
@@ -149,9 +150,6 @@ public:
 };
 
 
-}
-}
-}
-
-
-#endif // BOOST_SIMULATION_PDEVS_RUNNER_H
+}  // namespace pdevs
+}  // namespace simulation
+}  // namespace boost

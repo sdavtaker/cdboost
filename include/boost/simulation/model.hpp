@@ -24,25 +24,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#pragma once
 
-#ifndef BOOST_SIMULATION_MODEL_H
-#define BOOST_SIMULATION_MODEL_H
-#include <limits>
 #include <string>
 
 namespace boost {
 namespace simulation {
-/**
- * @brief Model class is the base of the modelling hierarchy.
- * Main objective is allowing pluging logers and debugging utilities.
- */
+
 template<class TIME>
 class model {
-public:
+  public:
     virtual void registerDebugParameters(std::string name) noexcept {}
-    const TIME infinity= TIME::Inf();
+
+    const TIME infinity = TIME::Inf();
 };
 
-}
-}
-#endif // BOOST_SIMULATION_MODEL_H
+}  // namespace simulation
+}  // namespace boost

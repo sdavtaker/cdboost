@@ -25,9 +25,11 @@
  */
 
 
-#ifndef BOOST_SIMULATION_PDEVS_PROCESSOR_H
-#define BOOST_SIMULATION_PDEVS_PROCESSOR_H
+#pragma once
+
 #include <queue>
+#include <vector>
+
 #include <boost/simulation/pdevs/atomic.hpp>
 
 namespace boost {
@@ -110,5 +112,3 @@ public:
 }
 }
 }
-
-#endif // BOOST_SIMULATION_PDEVS_PROCESSOR_H

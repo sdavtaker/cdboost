@@ -24,81 +24,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#pragma once
 
-#ifndef BOOST_SIMULATION_PDEVS_ATOMIC_H
-#define BOOST_SIMULATION_PDEVS_ATOMIC_H
+#include <string>
 #include <vector>
+
 #include <boost/simulation/model.hpp>
 
 namespace boost {
 namespace simulation {
 namespace pdevs {
 
-/**
- * @brief The pdevs::atomic class is the base for all PDEVS atomic models.
- *
- * The atomic class has the basic 4 functions that need to be implemented by a model to be used.
- * The Simulator objects instantiate the atomic models and call the operations in the proper order
- * to  produce the simulation.
- */
-
-template <class TIME, class MSG>
-class atomic : public model<TIME>
-{
-public:
-    using time_type=TIME;
-    using message_type=MSG; //Message suggested for most simulations is boost::any
-    using model_type=atomic<TIME, MSG>;
+template<class TIME, class MSG>
+class atomic : public model<TIME> {
+  public:
+    using time_type    = TIME;
+    using message_type = MSG;
+    using model_type   = atomic<TIME, MSG>;
 
     atomic() noexcept : modelName("atomic") {}
+    explicit atomic(const std::string& name) noexcept : modelName(name) {}
 
-    atomic(const std::string &name) noexcept : modelName( name ) {}
-    /**
-     * @brief internal transition function as defined in PDEVS
-     */
-    virtual void internal() noexcept  = 0;
-    /**
-     * @brief time advance function as defined in PDEVS
-     * @return Time until next internal event
-     */
-    virtual TIME advance() const noexcept = 0;
-    /**
-     * @brief output function as defined in PDEVS
-     * @return output message
-     */
-    virtual std::vector<MSG> out() const noexcept = 0;
-    /**
-     * @brief external function as defined in PDEVS
-     *
-     * @param mb is a bag of messages coming from outside.
-     * @param t is the time the message is received
-     */
+    virtual void internal() noexcept                                     = 0;
+    virtual TIME advance() const noexcept                                = 0;
+    virtual std::vector<MSG> out() const noexcept                        = 0;
     virtual void external(const std::vector<MSG>& mb, const TIME& t) noexcept = 0;
-    /**
-     * @brief confluence function as defined in PDEVS
-     *
-     * @param mb is a bag of messages coming from outside
-     * @param t is the time the message is received
-     */
     virtual void confluence(const std::vector<MSG>& mb, const TIME& t) noexcept = 0;
-    /**
-     * @brief asString returns the name of the port
-     */
-	const std::string asString() const { return modelName; }
-    /**
-     * @brief print prints the name of the port - To be implemented by the user
-     */
-	virtual void print() noexcept = 0;
 
-private:
+    const std::string asString() const { return modelName; }
+    virtual void print() noexcept {}
+
+  private:
     std::string modelName;
 };
 
-}
-}
-}
-
-#endif // BOOST_SIMULATION_PDEVS_ATOMIC_H
-
-
-
+}  // namespace pdevs
+}  // namespace simulation
+}  // namespace boost

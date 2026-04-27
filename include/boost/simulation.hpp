@@ -24,15 +24,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef BOOST_SIMULATION_HPP
-#define BOOST_SIMULATION_HPP
+#pragma once
 
 #include <memory>
+
+#include <boost/simulation/convenience.hpp>
 #include <boost/simulation/pdevs/atomic.hpp>
+#include <boost/simulation/pdevs/basic_models/event_stream.hpp>
 #include <boost/simulation/pdevs/coordinator.hpp>
 #include <boost/simulation/pdevs/coupled.hpp>
-#include <boost/simulation/convenience.hpp>
-#include <boost/simulation/pdevs/basic_models/event_stream.hpp>
-
-
-#endif // BOOST_SIMULATION_HPP

@@ -25,14 +25,16 @@
  */
 
 
-#ifndef BOOST_SIMULATION_PDEVS_COORDINATOR_H
-#define BOOST_SIMULATION_PDEVS_COORDINATOR_H
-#include <map>
-#include <queue>
+#pragma once
+
+#include <algorithm>
 #include <cassert>
+#include <map>
+#include <memory>
+#include <queue>
+#include <vector>
 
 #include <boost/simulation/pdevs/coupled.hpp>
-#include <boost/any.hpp>
 
 namespace boost {
 namespace simulation {
@@ -552,5 +554,3 @@ public:
 }
 }
 }
-
-#endif // BOOST_SIMULATION_PDEVS_COORDINATOR_H

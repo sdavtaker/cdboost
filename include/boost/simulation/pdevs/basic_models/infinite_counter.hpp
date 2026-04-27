@@ -25,10 +25,14 @@
  */
 
 
-#ifndef BOOST_SIMULATION_PDEVS_BM_INFINITE_COUNTER_H
-#define BOOST_SIMULATION_PDEVS_BM_INFINITE_COUNTER_H
-#include <boost/simulation/pdevs/atomic.hpp>
+#pragma once
+
+#include <algorithm>
+#include <vector>
+
 #include <boost/any.hpp>
+
+#include <boost/simulation/pdevs/atomic.hpp>
 
 namespace boost {
 namespace simulation {
@@ -124,5 +128,3 @@ public:
 }
 }
 }
-
-#endif // BOOST_SIMULATION_PDEVS_BM_INFINITE_COUNTER_H

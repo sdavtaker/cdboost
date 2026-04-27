@@ -1,6 +1,5 @@
 /**
- * Copyright (c) 2013-present, Damian Vicino & Daniella Niyonkuru
- * Modified by Daniella Niyonkuru (21/7/15 -> Port addition)
+ * Copyright (c) 2013-present, Damian Vicino
  * Carleton University, Universite de Nice-Sophia Antipolis
  * All rights reserved.
  *
@@ -25,33 +24,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#pragma once
 
-#ifndef BOOST_SIMULATION_CONVENIENCE_H
-#define BOOST_SIMULATION_CONVENIENCE_H
+#include <memory>
+
+#include <boost/simulation/pdevs/atomic.hpp>
+
 namespace boost {
 namespace simulation {
 
-/**
- * @brief create a pointer to a new atomic model of kind MODEL with its constructor parameters
- * @template MODEL model to be constructed
- * @template Args parameters to perfect forward to constructor of model
- * @param args parameters to perfect forward to constructor
- * @return a shared pointer to the atomic model constructed
- */
-
-//create a shared pointer to a pdevs::atomic model
 template<class MODEL, typename... Args>
-std::shared_ptr<pdevs::atomic<typename MODEL::time_type, typename MODEL::message_type>> make_atomic_ptr(Args... args) noexcept {
+std::shared_ptr<pdevs::atomic<typename MODEL::time_type, typename MODEL::message_type>>
+make_atomic_ptr(Args... args) noexcept {
     return std::make_shared<MODEL>(std::forward<Args>(args)...);
 }
 
-//create a shared pointer to a hardware port
-template<class MODEL, typename... Args>
-std::shared_ptr<pdevs::port<typename MODEL::time_type, typename MODEL::message_type>> make_port_ptr(Args... args) noexcept {
-    return std::make_shared<MODEL>(std::forward<Args>(args)...);
-}
-
-}
-}
-
-#endif // BOOST_SIMULATION_CONVENIENCE_H
+}  // namespace simulation
+}  // namespace boost

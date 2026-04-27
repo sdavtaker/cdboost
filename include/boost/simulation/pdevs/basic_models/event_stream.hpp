@@ -25,10 +25,14 @@
  */
 
 
-#ifndef BOOST_SIMULATION_PDEVS_event_stream_H
-#define BOOST_SIMULATION_PDEVS_event_stream_H
+#pragma once
+
+#include <cassert>
 #include <istream>
 #include <sstream>
+#include <string>
+#include <vector>
+
 #include <boost/simulation/pdevs/atomic.hpp>
 
 namespace boost {
@@ -53,7 +57,6 @@ class event_stream : public atomic<TIME, MSG>
     TIME _prefetched_time;
     MSG _prefetched_message;
     void (*_process)(const std::string&, TIME&, MSG&); //Parser process reads the string and sets the time,msg
-    const TIME infinity=1000; // Defining local infinity for testing purposes
 
 
     //helper function
@@ -68,7 +71,7 @@ class event_stream : public atomic<TIME, MSG>
         while(!_ps->eof() && line.empty());
         if (_ps->eof() && line.empty()){
             //if there is no more messages, set infinity as next event time
-            _prefetched_time = infinity;//atomic<TIME, MSG>::infinity;
+            _prefetched_time = atomic<TIME, MSG>::infinity;
         } else { //else cache the las message fetched
             //intermediary vars for casting
             TIME t_next;
@@ -80,7 +83,7 @@ class event_stream : public atomic<TIME, MSG>
                 line.clear();
                 std::getline(*_ps, line);
                 if (_ps->eof() && line.empty()){
-                    _prefetched_time = infinity;//atomic<TIME, MSG>::infinity;
+                    _prefetched_time = atomic<TIME, MSG>::infinity;
                     return;
                 } else {
                     _process(line, t_next, m_next);
@@ -126,7 +129,7 @@ public:
         std::string line;
         std::getline(*_ps, line); //needs at least one call to detect eof
         if (_ps->eof() && line.empty()){
-            _next = infinity;//atomic<TIME, MSG>::infinity;
+            _next = atomic<TIME, MSG>::infinity;
         } else {
             //intermediary vars for casting
             TIME t_next;
@@ -151,7 +154,7 @@ public:
      * @return TIME until next internal event.
      */
     TIME advance() const noexcept {
-        return (_next==infinity?_next:_next-_last);//return (_next==atomic<TIME, MSG>::infinity?_next:_next-_last);
+        return (_next == atomic<TIME, MSG>::infinity ? _next : _next - _last);
 
     }
     /**
@@ -174,5 +177,3 @@ public:
 }
 }
 }
-
-#endif // BOOST_SIMULATION_PDEVS_event_stream_H

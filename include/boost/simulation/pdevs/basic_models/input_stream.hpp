@@ -25,10 +25,15 @@
  */
 
 
-#ifndef BOOST_SIMULATION_PDEVS_ISTREAM_H
-#define BOOST_SIMULATION_PDEVS_ISTREAM_H
+#pragma once
+
+#include <cassert>
 #include <istream>
 #include <sstream>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 #include <boost/simulation/pdevs/atomic.hpp>
 
 namespace boost {
@@ -171,5 +176,3 @@ public:
 }
 }
 }
-
-#endif // BOOST_SIMULATION_PDEVS_ISTREAM_H

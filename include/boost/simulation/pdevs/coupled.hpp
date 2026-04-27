@@ -25,10 +25,13 @@
  */
 
 
-#ifndef BOOST_SIMULATION_PDEVS_COUPLED_H
-#define BOOST_SIMULATION_PDEVS_COUPLED_H
+#pragma once
+
+#include <memory>
+#include <utility>
+#include <vector>
+
 #include <boost/simulation/pdevs/atomic.hpp>
-#include <boost/simulation/model.hpp>
 
 namespace boost {
 namespace simulation {
@@ -271,8 +274,6 @@ public:
 
 };
 
-}
-}
-}
-
-#endif // BOOST_SIMULATION_PDEVS_COUPLED_H
+}  // namespace pdevs
+}  // namespace simulation
+}  // namespace boost

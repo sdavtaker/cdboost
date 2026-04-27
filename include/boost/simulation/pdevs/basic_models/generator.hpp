@@ -25,8 +25,11 @@
  */
 
 
-#ifndef BOOST_SIMULATION_PDEVS_BM_GENERATOR_H
-#define BOOST_SIMULATION_PDEVS_BM_GENERATOR_H
+#pragma once
+
+#include <cassert>
+#include <vector>
+
 #include <boost/simulation/pdevs/atomic.hpp>
 
 namespace boost {
@@ -94,4 +97,3 @@ public:
 }
 }
 }
-#endif // BOOST_SIMULATION_PDEVS_BM_GENERATOR_H
