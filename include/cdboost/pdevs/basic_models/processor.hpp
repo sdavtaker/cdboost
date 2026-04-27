@@ -88,7 +88,7 @@ public:
      * @param mb receives a bag of jobs.
      * @param t time the external input is received (relative to last advace).
      */
-     void external(const std::vector<MSG>& mb, const TIME& t) noexcept {
+     void external(const std::vector<MSG>& mb, const TIME& t) {
         _next = (0 == _jobs.size()?_processing: (_next-t));
         for (auto& m :mb){
             _jobs.push(m);
@@ -100,7 +100,7 @@ public:
      * @param mb receives a bag of jobs.
      * @param t time the external input is received (relative to last advace).
      */
-    virtual void confluence(const std::vector<MSG>& mb, const TIME& t) noexcept {
+    virtual void confluence(const std::vector<MSG>& mb, const TIME& t) {
         internal();
         external(mb, TIME(0));
     }

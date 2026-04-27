@@ -47,8 +47,8 @@ class atomic : public model<TIME> {
     virtual void internal() noexcept                                     = 0;
     virtual TIME advance() const noexcept                                = 0;
     virtual std::vector<MSG> out() const noexcept                        = 0;
-    virtual void external(const std::vector<MSG>& mb, const TIME& t) noexcept = 0;
-    virtual void confluence(const std::vector<MSG>& mb, const TIME& t) noexcept = 0;
+    virtual void external(const std::vector<MSG>& mb, const TIME& t) = 0;
+    virtual void confluence(const std::vector<MSG>& mb, const TIME& t) = 0;
 
     const std::string asString() const { return modelName; }
     virtual void print() noexcept {}

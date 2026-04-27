@@ -27,7 +27,6 @@
 
 #pragma once
 
-#include <cassert>
 #include <istream>
 #include <sstream>
 #include <stdexcept>
@@ -163,11 +162,11 @@ public:
     /**
      * @brief invalid external function.
      */
-    void external(const std::vector<MSG>& mb, const TIME& t) noexcept { assert(false && "Non external input is expected in this model"); }
+    void external(const std::vector<MSG>& mb, const TIME& t) { throw std::logic_error("No external input is expected in this model"); }
     /**
      * @brief invalid confluence function.
      */
-    void confluence(const std::vector<MSG>& mb, const TIME& t)  noexcept { assert(false && "Non external input is expected in this model"); }
+    void confluence(const std::vector<MSG>& mb, const TIME& t) { throw std::logic_error("No external input is expected in this model"); }
 
 };
 

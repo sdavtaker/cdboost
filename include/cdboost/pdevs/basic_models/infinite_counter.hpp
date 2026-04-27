@@ -94,7 +94,7 @@ public:
      * @param mb bag of messages.
      * @param t time the external input is received.
      */
-    void external(const std::vector<MSG>& mb, const TIME& t) noexcept {
+    void external(const std::vector<MSG>& mb, const TIME& t) {
         int zeros = count_if(mb.begin(), mb.end(),
                         [](const MSG& m){
                             if(0 == std::any_cast<int>(m)) return true;
@@ -116,7 +116,7 @@ public:
      * @param msg
      * @param t time the external input is confluent with an internal transition.
      */
-    void confluence(const std::vector<MSG>& mb, const TIME& t) noexcept {
+    void confluence(const std::vector<MSG>& mb, const TIME& t) {
         internal();
         external(mb, t);
     }

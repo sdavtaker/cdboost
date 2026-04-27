@@ -27,7 +27,7 @@
 
 #pragma once
 
-#include <cassert>
+#include <stdexcept>
 #include <vector>
 
 #include <cdboost/pdevs/atomic.hpp>
@@ -79,7 +79,7 @@ public:
      * @param msg external input message.
      * @param t time the external input is received.
      */
-    void external(const std::vector<MSG>& mb, const TIME& t) noexcept { assert(false && "No external input is expected by this model"); }
+    void external(const std::vector<MSG>& mb, const TIME& t) { throw std::logic_error("No external input is expected by this model"); }
 
     /**
      * @brief confluence function.
@@ -88,7 +88,7 @@ public:
      * @param msg
      * @param t time the external input is confluent with an internal transition.
      */
-    void confluence(const std::vector<MSG>& mb, const TIME& t)  noexcept  { assert(false && "No external input is expected by this model"); }
+    void confluence(const std::vector<MSG>& mb, const TIME& t) { throw std::logic_error("No external input is expected by this model"); }
 
 };
 

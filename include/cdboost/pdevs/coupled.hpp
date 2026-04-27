@@ -67,7 +67,7 @@ public:
             std::initializer_list<std::shared_ptr<model<TIME>>> eic,
             std::initializer_list<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>> ic,
             std::initializer_list<std::shared_ptr<model<TIME>>> eoc
-            ) noexcept
+            )
     {
           _desc.models = models;
           _desc.external_input_coupling = eic;
@@ -84,7 +84,7 @@ public:
             std::vector<std::shared_ptr<model<TIME>>> eic,
             std::vector<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>> ic,
             std::vector<std::shared_ptr<model<TIME>>> eoc
-             ) noexcept
+             )
     {
         _desc.models = models;
         _desc.external_input_coupling = eic;
@@ -119,7 +119,7 @@ public:
             std::initializer_list<std::shared_ptr<model<TIME>>> eic,
             std::initializer_list<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>> ic,
             std::initializer_list<std::shared_ptr<model<TIME>>> eoc
-                          ) noexcept : coupled<TIME, MSG>({}, {}, {}, {})
+                          ) : coupled<TIME, MSG>({}, {}, {}, {})
     {
         for ( auto& model : models){
             std::shared_ptr<coupled<TIME, MSG>> m_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(model);
@@ -196,7 +196,7 @@ public:
             std::vector<std::shared_ptr<model<TIME>>> eic,
             std::vector<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>> ic,
             std::vector<std::shared_ptr<model<TIME>>> eoc
-             ) noexcept : coupled<TIME, MSG>({}, {}, {}, {})
+             ) : coupled<TIME, MSG>({}, {}, {}, {})
     {
         for ( auto& model : models){
             std::shared_ptr<coupled<TIME, MSG>> m_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(model);
