@@ -11,13 +11,14 @@ if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 endif()
 
 find_package(Boost REQUIRED COMPONENTS rational)
+find_package(spdlog CONFIG REQUIRED)
 
 add_library(cdboost INTERFACE)
 target_include_directories(cdboost INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(cdboost INTERFACE Boost::boost)
+target_link_libraries(cdboost INTERFACE Boost::boost spdlog::spdlog)
 target_compile_options(cdboost INTERFACE -Wall -Wextra -pedantic)
 
 option(CDBOOST_BUILD_TESTS "Build tests" ON)
