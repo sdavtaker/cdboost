@@ -116,7 +116,8 @@ TEST_CASE("input_stream uses custom parser to read string messages", "[input_str
     CHECK(pf.advance() == Time(1));
     REQUIRE(pf.out().size() == 2);
     auto has = [&](const std::string& s) {
-        return std::any_of(pf.out().begin(), pf.out().end(),
+        auto out = pf.out();
+        return std::any_of(out.begin(), out.end(),
                            [&](const std::any& m) { return std::any_cast<std::string>(m) == s; });
     };
     CHECK(has("hello"));
