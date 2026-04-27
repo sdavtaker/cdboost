@@ -249,7 +249,7 @@ public:
                     if (receiver->next() != _last && receiver->_inbox.size() == 0){
                         inminents_external.push_back(receiver);
                     }
-                    receiver->_inbox.insert(receiver->_inbox.end(), _inbox.begin(), _inbox.end());
+                    receiver->_inbox.append_range(_inbox);
             }
             //collecting inputs and adding inminents models for internal transitions
             if (_last == _next) {
@@ -260,7 +260,7 @@ public:
                             if (receiver->next() != _last && receiver->_inbox.size() == 0){
                                 inminents_external.push_back(receiver);
                             }
-                            receiver->_inbox.insert(receiver->_inbox.end(), out.begin(), out.end());
+                            receiver->_inbox.append_range(out);
                         }
                     }
                 }
@@ -312,7 +312,7 @@ public:
         for (auto& co : _inminents){
             if (co->next() == t && co->_is_connected_to_out){
                 std::vector<MSG> tmp = co->collectOutputs(t);
-                vm.insert(vm.end(), tmp.begin(), tmp.end());
+                vm.append_range(tmp);
             }
         }
         return vm;
@@ -488,7 +488,7 @@ public:
                     if (receiver->next() != _last && receiver->_inbox.size() == 0){ // was == 0
                         inminents_external.push_back(receiver);
                     }
-                    receiver->_inbox.insert(receiver->_inbox.end(), _inbox.begin(), _inbox.end());
+                    receiver->_inbox.append_range(_inbox);
             }
             //collecting inputs and adding inminents models for internal transitions
             if (_last == _next) {
@@ -501,7 +501,7 @@ public:
                                     if (receiver->next() != _last && receiver->_inbox.size() == 0){
                                         inminents_external.push_back(receiver);
                                     }
-                                    receiver->_inbox.insert(receiver->_inbox.end(), out.begin(), out.end());
+                                    receiver->_inbox.append_range(out);
                             }
                         }
                     }
@@ -516,8 +516,8 @@ public:
 
             }
             //setting up next variable
-            auto next_coord = std::min_element(_subcoordinators.begin(), _subcoordinators.end(),
-                                     [](std::shared_ptr<coordinator>& pc1, std::shared_ptr<coordinator>& pc2){ return pc1->next() < pc2->next();});
+            auto next_coord = std::ranges::min_element(_subcoordinators, {},
+                                     [](const auto& pc) { return pc->next(); });
             _next = (*next_coord)->next();
         }
         _inbox.clear();
@@ -541,7 +541,7 @@ public:
         for (auto& co : _subcoordinators){
             if (co->next() == t && co->_is_connected_to_out){
                 std::vector<MSG> tmp = co->collectOutputs(t);
-                vm.insert(vm.end(), tmp.begin(), tmp.end());
+                vm.append_range(tmp);
             }
         }
         return vm;
