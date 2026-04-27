@@ -1,4 +1,5 @@
 find_package(Catch2 3 REQUIRED)
+include(Catch)
 
 set(TEST_FILES
     pdevs_coordinator_test.cpp
