@@ -10,6 +10,9 @@ jobs:
   build-and-test:
     runs-on: ubuntu-24.04
 
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,9 +24,16 @@ jobs:
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
 
       - name: Set up vcpkg
-        uses: lukka/run-vcpkg@v11
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git $VCPKG_ROOT
+          $VCPKG_ROOT/bootstrap-vcpkg.sh -disableMetrics
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
         with:
-          vcpkgGitCommitId: '01f602195983451bc83e72f4214af2cbc495aa94'
+          path: ${{ github.workspace }}/vcpkg/installed
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-${{ runner.os }}-
 
       - name: Configure
         run: |
