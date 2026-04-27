@@ -24,74 +24,80 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #pragma once
 
+#include <cdboost/pdevs/atomic.hpp>
 #include <stdexcept>
 #include <vector>
 
-#include <cdboost/pdevs/atomic.hpp>
-
 namespace cdboost {
-namespace pdevs {
-namespace basic_models {
-/**
- * @brief Generator PDEVS Model
- *
- * Generator PDEVS Model(period, outvalue):
- * - X = {}
- * - Y = {outvalue}
- * - S = {passive, active} x Multiples(period)
- * - internal(phase, t) = ("active", period)
- * - external = {}
- * - out ("active", t) = outvalue
- * - advance(phase, t) = period - t
-*/
-template<class TIME, class MSG>
-class generator : public atomic<TIME, MSG>
-{
-    TIME _period;
-    std::vector<MSG> _outvalue;
-public:
-    /**
-     * @brief Generator constructor.
-     *
-     * @param period Amount of time between ticks.
-     * @param outvalue Value to be returned by out function.
-     */
-    explicit generator(TIME period, MSG outvalue=1) noexcept : _period(period), _outvalue(std::vector<MSG>{outvalue}) {}
-    /**
-     * @brief internal function.
-     */
-    void internal() noexcept override {}
-    /**
-     * @brief advance function.
-     * @return Time until next internal event.
-     */
-    TIME advance() const noexcept override { return _period; }
-    /**
-     * @brief out function.
-     * @return MSG defined in contruction.
-     */
-    std::vector<MSG> out() const noexcept override { return _outvalue; }
-    /**
-     * @brief external function domain is empty, so it throws.
-     * @param msg external input message.
-     * @param t time the external input is received.
-     */
-    void external(const std::vector<MSG>& /*mb*/, const TIME& /*t*/) override { throw std::logic_error("No external input is expected by this model"); }
+    namespace pdevs {
+        namespace basic_models {
+            /**
+             * @brief Generator PDEVS Model
+             *
+             * Generator PDEVS Model(period, outvalue):
+             * - X = {}
+             * - Y = {outvalue}
+             * - S = {passive, active} x Multiples(period)
+             * - internal(phase, t) = ("active", period)
+             * - external = {}
+             * - out ("active", t) = outvalue
+             * - advance(phase, t) = period - t
+             */
+            template <class TIME, class MSG> class generator : public atomic<TIME, MSG> {
+                TIME _period;
+                std::vector<MSG> _outvalue;
 
-    /**
-     * @brief confluence function.
-     * Execute the internal first, it means someone already requested a counting result before.
-     *
-     * @param msg
-     * @param t time the external input is confluent with an internal transition.
-     */
-    void confluence(const std::vector<MSG>& /*mb*/, const TIME& /*t*/) override { throw std::logic_error("No external input is expected by this model"); }
+              public:
+                /**
+                 * @brief Generator constructor.
+                 *
+                 * @param period Amount of time between ticks.
+                 * @param outvalue Value to be returned by out function.
+                 */
+                explicit generator(TIME period, MSG outvalue = 1) noexcept
+                    : _period(period), _outvalue(std::vector<MSG>{outvalue}) {}
+                /**
+                 * @brief internal function.
+                 */
+                void internal() noexcept override {}
+                /**
+                 * @brief advance function.
+                 * @return Time until next internal event.
+                 */
+                TIME advance() const noexcept override {
+                    return _period;
+                }
+                /**
+                 * @brief out function.
+                 * @return MSG defined in contruction.
+                 */
+                std::vector<MSG> out() const noexcept override {
+                    return _outvalue;
+                }
+                /**
+                 * @brief external function domain is empty, so it throws.
+                 * @param msg external input message.
+                 * @param t time the external input is received.
+                 */
+                void external(const std::vector<MSG> & /*mb*/, const TIME & /*t*/) override {
+                    throw std::logic_error("No external input is expected by this model");
+                }
 
-};
+                /**
+                 * @brief confluence function.
+                 * Execute the internal first, it means someone already requested a counting result
+                 * before.
+                 *
+                 * @param msg
+                 * @param t time the external input is confluent with an internal transition.
+                 */
+                void confluence(const std::vector<MSG> & /*mb*/, const TIME & /*t*/) override {
+                    throw std::logic_error("No external input is expected by this model");
+                }
+            };
 
-}
-}
-}
+        } // namespace basic_models
+    } // namespace pdevs
+} // namespace cdboost

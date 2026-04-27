@@ -24,19 +24,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <catch2/catch_test_macros.hpp>
-
-#include <cmath>
-#include <memory>
-#include <sstream>
-
 #include <any>
-
+#include <catch2/catch_test_macros.hpp>
 #include <cdboost/convenience.hpp>
 #include <cdboost/pdevs/basic_models/generator.hpp>
 #include <cdboost/pdevs/basic_models/infinite_counter.hpp>
 #include <cdboost/pdevs/basic_models/input_stream.hpp>
 #include <cdboost/pdevs/coordinator.hpp>
+#include <cmath>
+#include <memory>
+#include <sstream>
 
 using namespace cdboost;
 using namespace cdboost::pdevs;
@@ -60,8 +57,7 @@ TEST_CASE("simulator: generator init with offset", "[simulator][generator]") {
 TEST_CASE("simulator: generator in coupled init returns period", "[simulator][generator]") {
     auto pa = make_atomic_ptr<generator<Time, Message>, Time>(Time{1});
     auto c  = std::make_shared<coupled<Time, Message>>(
-        std::vector<std::shared_ptr<model<Time>>>{pa},
-        std::vector<std::shared_ptr<model<Time>>>{},
+        std::vector<std::shared_ptr<model<Time>>>{pa}, std::vector<std::shared_ptr<model<Time>>>{},
         std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{},
         std::vector<std::shared_ptr<model<Time>>>{pa});
     coordinator<Time, Message> s{c};
@@ -74,7 +70,8 @@ TEST_CASE("simulator: infinite_counter init returns infinity", "[simulator][infi
     CHECK(std::isinf(s.init(Time(0))));
 }
 
-TEST_CASE("simulator: infinite_counter receives stream then outputs count", "[simulator][infinite_counter]") {
+TEST_CASE("simulator: infinite_counter receives stream then outputs count",
+          "[simulator][infinite_counter]") {
     auto pa   = make_atomic_ptr<infinite_counter<Time, Message>>();
     auto piss = std::make_shared<std::istringstream>(
         "1 1 \n 1 2 \n 1 3 \n 1 4 \n 2 5 \n 2 6 \n 2 7 \n 2 8 \n 2 0 ");
@@ -82,7 +79,8 @@ TEST_CASE("simulator: infinite_counter receives stream then outputs count", "[si
     auto pc = std::make_shared<coupled<Time, Message>>(
         std::vector<std::shared_ptr<model<Time>>>{pf, pa},
         std::vector<std::shared_ptr<model<Time>>>{},
-        std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{{pf, pa}},
+        std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{
+            {pf, pa}},
         std::vector<std::shared_ptr<model<Time>>>{pa});
     coordinator<Time, Message> s{pc};
 
@@ -109,12 +107,13 @@ TEST_CASE("simulator: infinite_counter confluence at time 1", "[simulator][infin
     auto pa   = make_atomic_ptr<infinite_counter<Time, Message>>();
     auto piss = std::make_shared<std::istringstream>(
         "1 1 \n 1 2 \n 1 3 \n 1 4 \n 1 0 \n 2 5 \n 2 6 \n 2 7 \n 2 8 \n 2 0 ");
-    auto pf = make_atomic_ptr<input_stream<Time, Message, int, int>, std::shared_ptr<std::istringstream>, Time>(
-        piss, Time(0));
+    auto pf = make_atomic_ptr<input_stream<Time, Message, int, int>,
+                              std::shared_ptr<std::istringstream>, Time>(piss, Time(0));
     auto pc = std::make_shared<coupled<Time, Message>>(
         std::vector<std::shared_ptr<model<Time>>>{pf, pa},
         std::vector<std::shared_ptr<model<Time>>>{},
-        std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{{pf, pa}},
+        std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{
+            {pf, pa}},
         std::vector<std::shared_ptr<model<Time>>>{pa});
     coordinator<Time, Message> s{pc};
 

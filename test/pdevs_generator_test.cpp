@@ -24,13 +24,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <catch2/catch_test_macros.hpp>
-
-#include <any>
 #include <boost/rational.hpp>
 
-#include <cdboost/rational_time.hpp>
+#include <any>
+#include <catch2/catch_test_macros.hpp>
 #include <cdboost/pdevs/basic_models/generator.hpp>
+#include <cdboost/rational_time.hpp>
 
 using namespace cdboost::pdevs::basic_models;
 

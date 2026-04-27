@@ -24,14 +24,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <any>
 #include <catch2/catch_test_macros.hpp>
-
+#include <cdboost/pdevs/basic_models/infinite_counter.hpp>
 #include <cmath>
 #include <vector>
-
-#include <any>
-
-#include <cdboost/pdevs/basic_models/infinite_counter.hpp>
 
 using namespace cdboost::pdevs::basic_models;
 

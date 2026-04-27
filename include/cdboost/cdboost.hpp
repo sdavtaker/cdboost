@@ -26,8 +26,6 @@
 
 #pragma once
 
-#include <memory>
-
 #include <cdboost/convenience.hpp>
 #include <cdboost/pdevs/atomic.hpp>
 #include <cdboost/pdevs/basic_models/event_stream.hpp>
@@ -35,3 +33,4 @@
 #include <cdboost/pdevs/coordinator.hpp>
 #include <cdboost/pdevs/coupled.hpp>
 #include <cdboost/pdevs/runner.hpp>
+#include <memory>

@@ -30,23 +30,21 @@
 
 namespace cdboost {
 
-// Customization point: specialize to provide infinity for TIME types that lack
-// std::numeric_limits<TIME>::infinity() (e.g. boost::rational).
-template<class TIME>
-struct time_inf {
-    static TIME value() {
-        if constexpr (std::numeric_limits<TIME>::has_infinity)
-            return std::numeric_limits<TIME>::infinity();
-        else
-            return TIME::Inf();
-    }
-};
+    // Customization point: specialize to provide infinity for TIME types that lack
+    // std::numeric_limits<TIME>::infinity() (e.g. boost::rational).
+    template <class TIME> struct time_inf {
+        static TIME value() {
+            if constexpr (std::numeric_limits<TIME>::has_infinity)
+                return std::numeric_limits<TIME>::infinity();
+            else
+                return TIME::Inf();
+        }
+    };
 
-template<class TIME>
-class model {
-  public:
-    virtual ~model() = default;
-    const TIME infinity = time_inf<TIME>::value();
-};
+    template <class TIME> class model {
+      public:
+        virtual ~model()    = default;
+        const TIME infinity = time_inf<TIME>::value();
+    };
 
-}  // namespace cdboost
+} // namespace cdboost

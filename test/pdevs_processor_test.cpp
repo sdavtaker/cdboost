@@ -25,10 +25,8 @@
  */
 
 #include <catch2/catch_test_macros.hpp>
-
-#include <cmath>
-
 #include <cdboost/pdevs/basic_models/processor.hpp>
+#include <cmath>
 
 using namespace cdboost::pdevs::basic_models;
 

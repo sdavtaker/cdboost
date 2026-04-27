@@ -24,21 +24,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <catch2/catch_test_macros.hpp>
-
-#include <algorithm>
-#include <memory>
-#include <utility>
-#include <vector>
-
-#include <any>
 #include <boost/rational.hpp>
 
-#include <cdboost/rational_time.hpp>
+#include <algorithm>
+#include <any>
+#include <catch2/catch_test_macros.hpp>
 #include <cdboost/convenience.hpp>
 #include <cdboost/pdevs/basic_models/generator.hpp>
 #include <cdboost/pdevs/basic_models/infinite_counter.hpp>
 #include <cdboost/pdevs/coupled.hpp>
+#include <cdboost/rational_time.hpp>
+#include <memory>
+#include <utility>
+#include <vector>
 
 using namespace cdboost;
 using namespace cdboost::pdevs;
@@ -80,7 +78,8 @@ TEST_CASE("coupled with nested coupled models via initializer_list", "[coupled]"
     auto pc1 = std::make_shared<coupled<Time, Message>>(
         std::vector<std::shared_ptr<model<Time>>>{pg1, pic},
         std::vector<std::shared_ptr<model<Time>>>{pic},
-        std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{{pg1, pic}},
+        std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{
+            {pg1, pic}},
         std::vector<std::shared_ptr<model<Time>>>{pic});
     coupled<Time, Message> pc2{{pg2, pc1}, {pc1}, {{pg2, pc1}}, {pc1}};
     auto desc = pc2.get_description();
@@ -93,8 +92,7 @@ TEST_CASE("coupled with nested coupled models via initializer_list", "[coupled]"
 TEST_CASE("coupled with single generator via vector constructors", "[coupled]") {
     auto pg = make_atomic_ptr<generator<Time, Message>, Time>(Time{1});
     coupled<Time, Message> pc{
-        std::vector<std::shared_ptr<model<Time>>>{pg},
-        std::vector<std::shared_ptr<model<Time>>>{},
+        std::vector<std::shared_ptr<model<Time>>>{pg}, std::vector<std::shared_ptr<model<Time>>>{},
         std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{},
         std::vector<std::shared_ptr<model<Time>>>{pg}};
     auto desc = pc.get_description();

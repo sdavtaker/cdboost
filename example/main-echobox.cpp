@@ -24,55 +24,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-#include <iostream>
-#include <chrono>
 #include <algorithm>
 #include <any>
-
 #include <cdboost/cdboost.hpp>
 #include <cdboost/pdevs/basic_models/processor.hpp>
+#include <chrono>
+#include <iostream>
 
 using namespace cdboost;
 using namespace cdboost::pdevs;
 using namespace cdboost::pdevs::basic_models;
 using namespace std;
 
+using hclock = chrono::high_resolution_clock;
 
-using hclock=chrono::high_resolution_clock;
+// This example is the simulation of a echo box doing 2 echos of the input.
 
-//This example is the simulation of a echo box doing 2 echos of the input.
-
-int main(){
+int main() {
     cout << "Creating the atomic models for the 2 echos" << endl;
-    auto echo1 = make_atomic_ptr<processor<double, std::any>, double>(double{1}) ; //the second param in make_atomic_ptr template  is the expected type for PProcessor construction.
-    auto echo2 = make_atomic_ptr<processor<double, std::any>, double>(double{3}) ;
+    auto echo1 = make_atomic_ptr<processor<double, std::any>, double>(
+        double{1}); // the second param in make_atomic_ptr template  is the expected type for
+                    // PProcessor construction.
+    auto echo2 = make_atomic_ptr<processor<double, std::any>, double>(double{3});
 
-    cout << "Coupling the models into the echobox: input to echo1, echo1 to echo2, and both to the output" << endl;
-    shared_ptr<coupled<double, std::any>> echobox( new coupled<double, std::any>{{echo1, echo2}, {echo1}, {{echo1, echo2}}, {echo1, echo2}});
+    cout << "Coupling the models into the echobox: input to echo1, echo1 to echo2, and both to the "
+            "output"
+         << endl;
+    shared_ptr<coupled<double, std::any>> echobox(
+        new coupled<double, std::any>{{echo1, echo2}, {echo1}, {{echo1, echo2}}, {echo1, echo2}});
 
     cout << "Creating the model to insert the input from stream" << endl;
     auto piss = make_shared<istringstream>();
     piss->str("1 1 \n 4 4 \n 5 5 \n 6 6 \n 8 8 \n 9 9 ");
-    auto pf = make_atomic_ptr<input_stream<double, std::any, int, int>, shared_ptr<istringstream>, double>(piss, double{0});
+    auto pf = make_atomic_ptr<input_stream<double, std::any, int, int>, shared_ptr<istringstream>,
+                              double>(piss, double{0});
 
     cout << "Coupling the echobox to the input" << endl;
-    shared_ptr<coupled<double, std::any>> root( new coupled<double, std::any>{{pf, echobox}, {}, {{pf, echobox}}, {echobox}});
+    shared_ptr<coupled<double, std::any>> root(
+        new coupled<double, std::any>{{pf, echobox}, {}, {{pf, echobox}}, {echobox}});
 
     cout << "Preparing runner" << endl;
     double initial_time{0};
-    runner<double, std::any> r(root, initial_time, cout, [](ostream& os, std::any m){ os << std::any_cast<int>(m);});
+    runner<double, std::any> r(root, initial_time, cout,
+                               [](ostream &os, std::any m) { os << std::any_cast<int>(m); });
 
     std::cout << "Starting simulation until passivate" << std::endl;
 
-    auto start = hclock::now(); //to measure simulation execution time
+    auto start = hclock::now(); // to measure simulation execution time
 
     r.runUntilPassivate();
 
-    auto elapsed = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>
-                                                                                          (hclock::now() - start).count();
+    auto elapsed = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>(
+                       hclock::now() - start)
+                       .count();
 
     cout << "Simulation took:" << elapsed << "sec" << endl;
     return 0;
 }
-

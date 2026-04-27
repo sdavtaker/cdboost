@@ -24,162 +24,165 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #pragma once
 
 #include <algorithm>
+#include <cdboost/pdevs/atomic.hpp>
 #include <memory>
 #include <ranges>
 #include <utility>
 #include <vector>
 
-#include <cdboost/pdevs/atomic.hpp>
-
 namespace cdboost {
-namespace pdevs {
+    namespace pdevs {
 
-/**
- * @brief The coupled class represents PDEVS coupled models
- */
-template<class TIME, class MSG>
-class coupled : public model<TIME>
-{
-protected:
-    /**
-     * @brief The coupled_description struct provides the necesary data for Coordinators to construct the hierarchy of simulation
-     */
-    struct coupled_description{
-        std::vector<std::shared_ptr<model<TIME>>> models;
-        std::vector<std::shared_ptr<model<TIME>>> external_input_coupling;
-        std::vector<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>> internal_coupling; //first to second
-        std::vector<std::shared_ptr<model<TIME>>> external_output_coupling;
-    };
+        /**
+         * @brief The coupled class represents PDEVS coupled models
+         */
+        template <class TIME, class MSG> class coupled : public model<TIME> {
+          protected:
+            /**
+             * @brief The coupled_description struct provides the necesary data for Coordinators to
+             * construct the hierarchy of simulation
+             */
+            struct coupled_description {
+                std::vector<std::shared_ptr<model<TIME>>> models;
+                std::vector<std::shared_ptr<model<TIME>>> external_input_coupling;
+                std::vector<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>>
+                    internal_coupling; // first to second
+                std::vector<std::shared_ptr<model<TIME>>> external_output_coupling;
+            };
 
-    coupled_description _desc;
-public:
-    using time_type=TIME;
-    using message_type=MSG;
-    using model_type=coupled<TIME, MSG>;
-    using description_type=coupled_description;
+            coupled_description _desc;
 
-    /**
-     * @brief coupled receives the whole coupled model specs by pointers to models
-     */
-    coupled(std::initializer_list<std::shared_ptr<model<TIME>>> models,
-            std::initializer_list<std::shared_ptr<model<TIME>>> eic,
-            std::initializer_list<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>> ic,
-            std::initializer_list<std::shared_ptr<model<TIME>>> eoc
-            )
-    {
-          _desc.models = models;
-          _desc.external_input_coupling = eic;
-          _desc.internal_coupling = ic;
-          _desc.external_output_coupling = eoc;
+          public:
+            using time_type        = TIME;
+            using message_type     = MSG;
+            using model_type       = coupled<TIME, MSG>;
+            using description_type = coupled_description;
 
-    }
-    /**
-     * @brief Coupled receives the whole coupled model spec by pointers to models
-     * The difference with the other constructor is the use of vectors in place of initilizer_lists
-     * for the case where the initializer_list can not be constructed (because using dynamic construction or MS compiler).
-     */
-    coupled(std::vector<std::shared_ptr<model<TIME>>> models,
-            std::vector<std::shared_ptr<model<TIME>>> eic,
-            std::vector<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>> ic,
-            std::vector<std::shared_ptr<model<TIME>>> eoc
-             )
-    {
-        _desc.models = models;
-        _desc.external_input_coupling = eic;
-        _desc.internal_coupling = ic;
-        _desc.external_output_coupling = eoc;
-    }
-    /**
-     * @brief get_description provides the model in a way a coordinator
-     * can read to construct the simulation hierarchy.
-     */
-    const coupled_description& get_description() noexcept {
-        //this is a good place for an assert that whole model is properly constructed
-        return _desc;
-    }
-
-};
-
-
-
-/**
- * @brief The flattened_coupled class represents a coupled model PDEVS that has a single level
- */
-template<class TIME, class MSG>
-class flattened_coupled : public coupled<TIME, MSG>
-{
-public:
-    flattened_coupled(std::initializer_list<std::shared_ptr<model<TIME>>> models,
-            std::initializer_list<std::shared_ptr<model<TIME>>> eic,
-            std::initializer_list<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>> ic,
-            std::initializer_list<std::shared_ptr<model<TIME>>> eoc)
-        : flattened_coupled(
-            std::vector<std::shared_ptr<model<TIME>>>(models),
-            std::vector<std::shared_ptr<model<TIME>>>(eic),
-            std::vector<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>>(ic),
-            std::vector<std::shared_ptr<model<TIME>>>(eoc))
-    {}
-
-    flattened_coupled(std::vector<std::shared_ptr<model<TIME>>> models,
-            std::vector<std::shared_ptr<model<TIME>>> eic,
-            std::vector<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>> ic,
-            std::vector<std::shared_ptr<model<TIME>>> eoc
-             ) : coupled<TIME, MSG>({}, {}, {}, {})
-    {
-        for (auto& m : models) {
-            if (auto mc = std::dynamic_pointer_cast<coupled<TIME, MSG>>(m)) {
-                auto desc = mc->get_description();
-                std::ranges::copy(desc.models, std::back_inserter(coupled<TIME, MSG>::_desc.models));
-                std::ranges::copy(desc.internal_coupling, std::back_inserter(coupled<TIME, MSG>::_desc.internal_coupling));
-            } else {
-                coupled<TIME, MSG>::_desc.models.push_back(m);
+            /**
+             * @brief coupled receives the whole coupled model specs by pointers to models
+             */
+            coupled(std::initializer_list<std::shared_ptr<model<TIME>>> models,
+                    std::initializer_list<std::shared_ptr<model<TIME>>> eic,
+                    std::initializer_list<
+                        std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>>
+                        ic,
+                    std::initializer_list<std::shared_ptr<model<TIME>>> eoc) {
+                _desc.models                   = models;
+                _desc.external_input_coupling  = eic;
+                _desc.internal_coupling        = ic;
+                _desc.external_output_coupling = eoc;
             }
-        }
-        for (auto& in : eic) {
-            if (auto mc = std::dynamic_pointer_cast<coupled<TIME, MSG>>(in)) {
-                std::ranges::copy(mc->get_description().external_input_coupling, std::back_inserter(coupled<TIME, MSG>::_desc.external_input_coupling));
-            } else {
-                coupled<TIME, MSG>::_desc.external_input_coupling.push_back(in);
+            /**
+             * @brief Coupled receives the whole coupled model spec by pointers to models
+             * The difference with the other constructor is the use of vectors in place of
+             * initilizer_lists for the case where the initializer_list can not be constructed
+             * (because using dynamic construction or MS compiler).
+             */
+            coupled(
+                std::vector<std::shared_ptr<model<TIME>>> models,
+                std::vector<std::shared_ptr<model<TIME>>> eic,
+                std::vector<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>>
+                    ic,
+                std::vector<std::shared_ptr<model<TIME>>> eoc) {
+                _desc.models                   = models;
+                _desc.external_input_coupling  = eic;
+                _desc.internal_coupling        = ic;
+                _desc.external_output_coupling = eoc;
             }
-        }
-        for (auto& out : eoc) {
-            if (auto mc = std::dynamic_pointer_cast<coupled<TIME, MSG>>(out)) {
-                std::ranges::copy(mc->get_description().external_output_coupling, std::back_inserter(coupled<TIME, MSG>::_desc.external_output_coupling));
-            } else {
-                coupled<TIME, MSG>::_desc.external_output_coupling.push_back(out);
+            /**
+             * @brief get_description provides the model in a way a coordinator
+             * can read to construct the simulation hierarchy.
+             */
+            const coupled_description &get_description() noexcept {
+                // this is a good place for an assert that whole model is properly constructed
+                return _desc;
             }
-        }
-        for (auto& [left, right] : ic) {
-            auto ml = std::dynamic_pointer_cast<coupled<TIME, MSG>>(left);
-            auto mr = std::dynamic_pointer_cast<coupled<TIME, MSG>>(right);
-            if (!ml && !mr) {
-                coupled<TIME, MSG>::_desc.internal_coupling.push_back({left, right});
-            } else if (!ml) {
-                for (auto& ri : mr->get_description().external_input_coupling)
-                    coupled<TIME, MSG>::_desc.internal_coupling.push_back({left, ri});
-            } else if (!mr) {
-                for (auto& lo : ml->get_description().external_output_coupling)
-                    coupled<TIME, MSG>::_desc.internal_coupling.push_back({lo, right});
-            } else {
-                for (auto& lo : ml->get_description().external_output_coupling)
-                    for (auto& ri : mr->get_description().external_input_coupling)
-                        coupled<TIME, MSG>::_desc.internal_coupling.push_back({lo, ri});
-            }
-        }
-    }
-    /**
-     * @brief get_description provides the model in a way a coordinator
-     * can read to construct the simulation hierarchy.
-     */
-    const typename coupled<TIME, MSG>::coupled_description& get_description() noexcept {
-        return coupled<TIME, MSG>::_desc;
-    }
+        };
 
-};
+        /**
+         * @brief The flattened_coupled class represents a coupled model PDEVS that has a single
+         * level
+         */
+        template <class TIME, class MSG> class flattened_coupled : public coupled<TIME, MSG> {
+          public:
+            flattened_coupled(std::initializer_list<std::shared_ptr<model<TIME>>> models,
+                              std::initializer_list<std::shared_ptr<model<TIME>>> eic,
+                              std::initializer_list<std::pair<std::shared_ptr<model<TIME>>,
+                                                              std::shared_ptr<model<TIME>>>>
+                                  ic,
+                              std::initializer_list<std::shared_ptr<model<TIME>>> eoc)
+                : flattened_coupled(std::vector<std::shared_ptr<model<TIME>>>(models),
+                                    std::vector<std::shared_ptr<model<TIME>>>(eic),
+                                    std::vector<std::pair<std::shared_ptr<model<TIME>>,
+                                                          std::shared_ptr<model<TIME>>>>(ic),
+                                    std::vector<std::shared_ptr<model<TIME>>>(eoc)) {}
 
-}  // namespace pdevs
-}  // namespace cdboost
+            flattened_coupled(
+                std::vector<std::shared_ptr<model<TIME>>> models,
+                std::vector<std::shared_ptr<model<TIME>>> eic,
+                std::vector<std::pair<std::shared_ptr<model<TIME>>, std::shared_ptr<model<TIME>>>>
+                    ic,
+                std::vector<std::shared_ptr<model<TIME>>> eoc)
+                : coupled<TIME, MSG>({}, {}, {}, {}) {
+                for (auto &m : models) {
+                    if (auto mc = std::dynamic_pointer_cast<coupled<TIME, MSG>>(m)) {
+                        auto desc = mc->get_description();
+                        std::ranges::copy(desc.models,
+                                          std::back_inserter(coupled<TIME, MSG>::_desc.models));
+                        std::ranges::copy(
+                            desc.internal_coupling,
+                            std::back_inserter(coupled<TIME, MSG>::_desc.internal_coupling));
+                    } else {
+                        coupled<TIME, MSG>::_desc.models.push_back(m);
+                    }
+                }
+                for (auto &in : eic) {
+                    if (auto mc = std::dynamic_pointer_cast<coupled<TIME, MSG>>(in)) {
+                        std::ranges::copy(
+                            mc->get_description().external_input_coupling,
+                            std::back_inserter(coupled<TIME, MSG>::_desc.external_input_coupling));
+                    } else {
+                        coupled<TIME, MSG>::_desc.external_input_coupling.push_back(in);
+                    }
+                }
+                for (auto &out : eoc) {
+                    if (auto mc = std::dynamic_pointer_cast<coupled<TIME, MSG>>(out)) {
+                        std::ranges::copy(
+                            mc->get_description().external_output_coupling,
+                            std::back_inserter(coupled<TIME, MSG>::_desc.external_output_coupling));
+                    } else {
+                        coupled<TIME, MSG>::_desc.external_output_coupling.push_back(out);
+                    }
+                }
+                for (auto &[left, right] : ic) {
+                    auto ml = std::dynamic_pointer_cast<coupled<TIME, MSG>>(left);
+                    auto mr = std::dynamic_pointer_cast<coupled<TIME, MSG>>(right);
+                    if (!ml && !mr) {
+                        coupled<TIME, MSG>::_desc.internal_coupling.push_back({left, right});
+                    } else if (!ml) {
+                        for (auto &ri : mr->get_description().external_input_coupling)
+                            coupled<TIME, MSG>::_desc.internal_coupling.push_back({left, ri});
+                    } else if (!mr) {
+                        for (auto &lo : ml->get_description().external_output_coupling)
+                            coupled<TIME, MSG>::_desc.internal_coupling.push_back({lo, right});
+                    } else {
+                        for (auto &lo : ml->get_description().external_output_coupling)
+                            for (auto &ri : mr->get_description().external_input_coupling)
+                                coupled<TIME, MSG>::_desc.internal_coupling.push_back({lo, ri});
+                    }
+                }
+            }
+            /**
+             * @brief get_description provides the model in a way a coordinator
+             * can read to construct the simulation hierarchy.
+             */
+            const typename coupled<TIME, MSG>::coupled_description &get_description() noexcept {
+                return coupled<TIME, MSG>::_desc;
+            }
+        };
+
+    } // namespace pdevs
+} // namespace cdboost

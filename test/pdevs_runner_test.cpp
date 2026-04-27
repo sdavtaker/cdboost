@@ -24,18 +24,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <any>
 #include <catch2/catch_test_macros.hpp>
-
+#include <cdboost/pdevs/basic_models/generator.hpp>
+#include <cdboost/pdevs/basic_models/input_stream.hpp>
+#include <cdboost/pdevs/runner.hpp>
 #include <cmath>
 #include <memory>
 #include <sstream>
 #include <type_traits>
-
-#include <any>
-
-#include <cdboost/pdevs/basic_models/generator.hpp>
-#include <cdboost/pdevs/basic_models/input_stream.hpp>
-#include <cdboost/pdevs/runner.hpp>
 
 using namespace cdboost::pdevs;
 using namespace cdboost::pdevs::basic_models;
@@ -62,7 +59,7 @@ TEST_CASE("runner stops when model goes passive", "[runner]") {
         std::vector<std::shared_ptr<cdboost::model<Time>>>{pf},
         std::vector<std::shared_ptr<cdboost::model<Time>>>{},
         std::vector<std::pair<std::shared_ptr<cdboost::model<Time>>,
-                              std::shared_ptr<cdboost::model<Time>>>>{},
+                                std::shared_ptr<cdboost::model<Time>>>>{},
         std::vector<std::shared_ptr<cdboost::model<Time>>>{pf});
     runner<Time, Message> r(cm, Time{0});
     CHECK(std::isinf(r.runUntil(Time{20})));
@@ -75,7 +72,7 @@ TEST_CASE("runner stops mid-sequence and returns next event time", "[runner]") {
         std::vector<std::shared_ptr<cdboost::model<Time>>>{pf},
         std::vector<std::shared_ptr<cdboost::model<Time>>>{},
         std::vector<std::pair<std::shared_ptr<cdboost::model<Time>>,
-                              std::shared_ptr<cdboost::model<Time>>>>{},
+                                std::shared_ptr<cdboost::model<Time>>>>{},
         std::vector<std::shared_ptr<cdboost::model<Time>>>{pf});
     runner<Time, Message> r(cm, Time{0});
     CHECK(r.runUntil(Time{7}) == Time{8});
@@ -88,7 +85,7 @@ TEST_CASE("runner runUntilPassivate completes without throwing", "[runner]") {
         std::vector<std::shared_ptr<cdboost::model<Time>>>{pf},
         std::vector<std::shared_ptr<cdboost::model<Time>>>{},
         std::vector<std::pair<std::shared_ptr<cdboost::model<Time>>,
-                              std::shared_ptr<cdboost::model<Time>>>>{},
+                                std::shared_ptr<cdboost::model<Time>>>>{},
         std::vector<std::shared_ptr<cdboost::model<Time>>>{pf});
     runner<Time, Message> r(cm, Time{0});
     CHECK_NOTHROW(r.runUntilPassivate());
@@ -103,9 +100,8 @@ TEST_CASE("runner with output stream: generator produces correct log", "[runner]
                               std::shared_ptr<cdboost::model<Time>>>>{},
         std::vector<std::shared_ptr<cdboost::model<Time>>>{pa});
     std::ostringstream oss;
-    runner<Time, Message> r(cm, Time{0}, oss, [](std::ostream& os, std::any m) {
-        os << std::any_cast<int>(m);
-    });
+    runner<Time, Message> r(cm, Time{0}, oss,
+                            [](std::ostream &os, std::any m) { os << std::any_cast<int>(m); });
     r.runUntil(Time{10});
     CHECK(oss.str() == "1 1\n2 1\n3 1\n4 1\n5 1\n6 1\n7 1\n8 1\n9 1\n");
 }
@@ -117,12 +113,11 @@ TEST_CASE("runner with output stream: input_stream produces correct log", "[runn
         std::vector<std::shared_ptr<cdboost::model<Time>>>{pf},
         std::vector<std::shared_ptr<cdboost::model<Time>>>{},
         std::vector<std::pair<std::shared_ptr<cdboost::model<Time>>,
-                              std::shared_ptr<cdboost::model<Time>>>>{},
+                                std::shared_ptr<cdboost::model<Time>>>>{},
         std::vector<std::shared_ptr<cdboost::model<Time>>>{pf});
     std::ostringstream oss;
-    runner<Time, Message> r(cm, Time{0}, oss, [](std::ostream& os, std::any m) {
-        os << std::any_cast<int>(m);
-    });
+    runner<Time, Message> r(cm, Time{0}, oss,
+                            [](std::ostream &os, std::any m) { os << std::any_cast<int>(m); });
     r.runUntilPassivate();
     CHECK(oss.str() == "1 1\n4 4\n5 5\n6 6\n8 8\n9 9\n");
 }

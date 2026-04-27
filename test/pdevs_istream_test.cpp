@@ -24,17 +24,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <catch2/catch_test_macros.hpp>
-
 #include <algorithm>
+#include <any>
+#include <catch2/catch_test_macros.hpp>
+#include <cdboost/pdevs/basic_models/input_stream.hpp>
 #include <cmath>
 #include <memory>
 #include <sstream>
 #include <string>
-
-#include <any>
-
-#include <cdboost/pdevs/basic_models/input_stream.hpp>
 
 using namespace cdboost::pdevs::basic_models;
 
@@ -99,9 +96,8 @@ TEST_CASE("input_stream replays pairs of events at each time step", "[input_stre
 TEST_CASE("input_stream uses custom parser to read string messages", "[input_stream]") {
     auto piss = std::make_shared<std::istringstream>("1 hello \n 1 world \n 2 hello \n 2 world");
     input_stream<Time, Message, int, int> pf{
-        piss, Time(0),
-        [](const std::string& s, Time& t_next, std::any& m_next) {
-            int         tmp_int;
+        piss, Time(0), [](const std::string &s, Time &t_next, std::any &m_next) {
+            int tmp_int;
             std::string tmp_str;
             std::stringstream ss;
             ss.str(s);
@@ -111,14 +107,15 @@ TEST_CASE("input_stream uses custom parser to read string messages", "[input_str
             m_next = static_cast<std::any>(tmp_str);
             std::string thrash;
             ss >> thrash;
-            if (thrash.size() != 0) throw std::exception();
+            if (thrash.size() != 0)
+                throw std::exception();
         }};
     CHECK(pf.advance() == Time(1));
     REQUIRE(pf.out().size() == 2);
-    auto has = [&](const std::string& s) {
+    auto has = [&](const std::string &s) {
         auto out = pf.out();
         return std::any_of(out.begin(), out.end(),
-                           [&](const std::any& m) { return std::any_cast<std::string>(m) == s; });
+                           [&](const std::any &m) { return std::any_cast<std::string>(m) == s; });
     };
     CHECK(has("hello"));
     CHECK(has("world"));

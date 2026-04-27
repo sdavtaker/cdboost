@@ -24,15 +24,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <algorithm>
+#include <any>
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
-
-#include <algorithm>
-#include <memory>
-#include <sstream>
-
-#include <any>
-
 #include <cdboost/convenience.hpp>
 #include <cdboost/pdevs/basic_models/generator.hpp>
 #include <cdboost/pdevs/basic_models/infinite_counter.hpp>
@@ -40,6 +35,8 @@
 #include <cdboost/pdevs/basic_models/processor.hpp>
 #include <cdboost/pdevs/coordinator.hpp>
 #include <cdboost/pdevs/coupled.hpp>
+#include <memory>
+#include <sstream>
 
 using namespace cdboost;
 using namespace cdboost::pdevs;
@@ -48,25 +45,22 @@ using namespace cdboost::pdevs::basic_models;
 using Time = double;
 
 // Helper: processor whose confluence must not be called
-template<class TIME, class MSG>
-class NoConfluenceProcessor : public processor<TIME, MSG> {
+template <class TIME, class MSG> class NoConfluenceProcessor : public processor<TIME, MSG> {
   public:
     explicit NoConfluenceProcessor(TIME t) : processor<TIME, MSG>(t) {}
-    void confluence(const std::vector<MSG>& mb, const TIME& t) noexcept override {
+    void confluence(const std::vector<MSG> &mb, const TIME &t) noexcept override {
         FAIL("confluence should not be called");
     }
 };
 
 // --- priority_queue_vector coordinator (template over MSG) ---
 
-TEMPLATE_TEST_CASE(
-    "coordinator pqv: single generator produces right output", "[coordinator][pqv]",
-    std::any, int) {
+TEMPLATE_TEST_CASE("coordinator pqv: single generator produces right output", "[coordinator][pqv]",
+                   std::any, int) {
     using MSG = TestType;
     auto pa   = std::make_shared<generator<Time, MSG>>(Time{1}, MSG{2});
     auto cm   = std::make_shared<coupled<Time, MSG>>(
-        std::vector<std::shared_ptr<model<Time>>>{pa},
-        std::vector<std::shared_ptr<model<Time>>>{},
+        std::vector<std::shared_ptr<model<Time>>>{pa}, std::vector<std::shared_ptr<model<Time>>>{},
         std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{},
         std::vector<std::shared_ptr<model<Time>>>{pa});
     auto c = std::make_shared<coordinator<Time, MSG, priority_queue_vector>>(cm);
@@ -81,14 +75,12 @@ TEMPLATE_TEST_CASE(
     CHECK(std::any_cast<int>(reply[0]) == 2);
 }
 
-TEMPLATE_TEST_CASE(
-    "coordinator pqv: three cascaded generators produce correct output sequence",
-    "[coordinator][pqv]", std::any, int) {
+TEMPLATE_TEST_CASE("coordinator pqv: three cascaded generators produce correct output sequence",
+                   "[coordinator][pqv]", std::any, int) {
     using MSG = TestType;
     auto pa1  = std::make_shared<generator<Time, MSG>>(Time{1}, MSG{1});
     auto cm1  = std::make_shared<coupled<Time, MSG>>(
-        std::vector<std::shared_ptr<model<Time>>>{pa1},
-        std::vector<std::shared_ptr<model<Time>>>{},
+        std::vector<std::shared_ptr<model<Time>>>{pa1}, std::vector<std::shared_ptr<model<Time>>>{},
         std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{},
         std::vector<std::shared_ptr<model<Time>>>{pa1});
     auto pa2 = std::make_shared<generator<Time, MSG>>(Time{2}, MSG{2});
@@ -121,9 +113,9 @@ TEMPLATE_TEST_CASE(
     CHECK(t == Time{3});
     REQUIRE(reply.size() == 2);
     CHECK(std::count_if(reply.begin(), reply.end(),
-                        [](MSG& m) { return std::any_cast<int>(m) == 1; }) == 1);
+                        [](MSG &m) { return std::any_cast<int>(m) == 1; }) == 1);
     CHECK(std::count_if(reply.begin(), reply.end(),
-                        [](MSG& m) { return std::any_cast<int>(m) == 2; }) == 1);
+                        [](MSG &m) { return std::any_cast<int>(m) == 2; }) == 1);
 }
 
 // --- nullqueue coordinator ---
@@ -132,8 +124,7 @@ TEST_CASE("coordinator nq: single generator produces right output", "[coordinato
     using MSG = std::any;
     auto pa   = std::make_shared<generator<Time, MSG>>(Time{1}, MSG{2});
     auto cm   = std::make_shared<coupled<Time, MSG>>(
-        std::vector<std::shared_ptr<model<Time>>>{pa},
-        std::vector<std::shared_ptr<model<Time>>>{},
+        std::vector<std::shared_ptr<model<Time>>>{pa}, std::vector<std::shared_ptr<model<Time>>>{},
         std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{},
         std::vector<std::shared_ptr<model<Time>>>{pa});
     auto c = std::make_shared<coordinator<Time, MSG, nullqueue>>(cm);
@@ -153,13 +144,13 @@ TEST_CASE("coordinator nq: generator to infinite_counter with manual reset", "[c
     auto pg   = std::make_shared<generator<Time, MSG>>(Time{2}, MSG{1});
     auto pic  = std::make_shared<infinite_counter<Time, MSG>>();
     auto piss = std::make_shared<std::istringstream>(" 3 0 ");
-    auto pf   = make_atomic_ptr<input_stream<Time, MSG, int, int>, std::shared_ptr<std::istringstream>, Time>(
-        piss, Time(0));
-    auto cm = std::make_shared<coupled<Time, MSG>>(
+    auto pf   = make_atomic_ptr<input_stream<Time, MSG, int, int>,
+                                std::shared_ptr<std::istringstream>, Time>(piss, Time(0));
+    auto cm   = std::make_shared<coupled<Time, MSG>>(
         std::vector<std::shared_ptr<model<Time>>>{pg, pic, pf},
         std::vector<std::shared_ptr<model<Time>>>{},
-        std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{{pg, pic},
-                                                                                            {pf, pic}},
+        std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{
+            {pg, pic}, {pf, pic}},
         std::vector<std::shared_ptr<model<Time>>>{pic});
     auto c = std::make_shared<coordinator<Time, MSG, nullqueue>>(cm);
 
@@ -193,8 +184,8 @@ TEST_CASE("coordinator nq: two generators to infinite_counter", "[coordinator][n
     auto cm   = std::make_shared<coupled<Time, MSG>>(
         std::vector<std::shared_ptr<model<Time>>>{pg1, pg2, pic},
         std::vector<std::shared_ptr<model<Time>>>{},
-        std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{{pg1, pic},
-                                                                                            {pg2, pic}},
+        std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{
+            {pg1, pic}, {pg2, pic}},
         std::vector<std::shared_ptr<model<Time>>>{pic});
     auto c = std::make_shared<coordinator<Time, MSG, nullqueue>>(cm);
 
@@ -230,9 +221,8 @@ TEST_CASE("coordinator nq: confluence not called when generator output precedes 
     auto cm   = std::make_shared<coupled<Time, MSG>>(
         std::vector<std::shared_ptr<model<Time>>>{pg, pp, pt},
         std::vector<std::shared_ptr<model<Time>>>{},
-        std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{{pg, pp},
-                                                                                            {pg, pt},
-                                                                                            {pp, pt}},
+        std::vector<std::pair<std::shared_ptr<model<Time>>, std::shared_ptr<model<Time>>>>{
+            {pg, pp}, {pg, pt}, {pp, pt}},
         std::vector<std::shared_ptr<model<Time>>>{pt});
     auto c = std::make_shared<coordinator<Time, MSG, nullqueue>>(cm);
 

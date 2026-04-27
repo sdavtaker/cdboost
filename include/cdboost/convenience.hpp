@@ -26,16 +26,15 @@
 
 #pragma once
 
-#include <memory>
-
 #include <cdboost/pdevs/atomic.hpp>
+#include <memory>
 
 namespace cdboost {
 
-template<class MODEL, typename... Args>
-std::shared_ptr<pdevs::atomic<typename MODEL::time_type, typename MODEL::message_type>>
-make_atomic_ptr(Args... args) noexcept {
-    return std::make_shared<MODEL>(std::forward<Args>(args)...);
-}
+    template <class MODEL, typename... Args>
+    std::shared_ptr<pdevs::atomic<typename MODEL::time_type, typename MODEL::message_type>>
+    make_atomic_ptr(Args... args) noexcept {
+        return std::make_shared<MODEL>(std::forward<Args>(args)...);
+    }
 
-}  // namespace cdboost
+} // namespace cdboost

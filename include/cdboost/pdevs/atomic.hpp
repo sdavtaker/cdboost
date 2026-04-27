@@ -26,36 +26,36 @@
 
 #pragma once
 
+#include <cdboost/model.hpp>
 #include <string>
 #include <vector>
 
-#include <cdboost/model.hpp>
-
 namespace cdboost {
-namespace pdevs {
+    namespace pdevs {
 
-template<class TIME, class MSG>
-class atomic : public model<TIME> {
-  public:
-    using time_type    = TIME;
-    using message_type = MSG;
-    using model_type   = atomic<TIME, MSG>;
+        template <class TIME, class MSG> class atomic : public model<TIME> {
+          public:
+            using time_type    = TIME;
+            using message_type = MSG;
+            using model_type   = atomic<TIME, MSG>;
 
-    atomic() noexcept : modelName("atomic") {}
-    explicit atomic(const std::string& name) noexcept : modelName(name) {}
+            atomic() noexcept : modelName("atomic") {}
+            explicit atomic(const std::string &name) noexcept : modelName(name) {}
 
-    virtual void internal() noexcept                                     = 0;
-    virtual TIME advance() const noexcept                                = 0;
-    virtual std::vector<MSG> out() const noexcept                        = 0;
-    virtual void external(const std::vector<MSG>& mb, const TIME& t) = 0;
-    virtual void confluence(const std::vector<MSG>& mb, const TIME& t) = 0;
+            virtual void internal() noexcept                                   = 0;
+            virtual TIME advance() const noexcept                              = 0;
+            virtual std::vector<MSG> out() const noexcept                      = 0;
+            virtual void external(const std::vector<MSG> &mb, const TIME &t)   = 0;
+            virtual void confluence(const std::vector<MSG> &mb, const TIME &t) = 0;
 
-    const std::string as_string() const { return modelName; }
-    virtual void print() noexcept {}
+            const std::string as_string() const {
+                return modelName;
+            }
+            virtual void print() noexcept {}
 
-  private:
-    std::string modelName;
-};
+          private:
+            std::string modelName;
+        };
 
-}  // namespace pdevs
-}  // namespace cdboost
+    } // namespace pdevs
+} // namespace cdboost

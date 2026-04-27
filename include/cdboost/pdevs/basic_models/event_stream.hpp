@@ -24,154 +24,164 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #pragma once
 
+#include <cdboost/pdevs/atomic.hpp>
 #include <istream>
-#include <stdexcept>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
-#include <cdboost/pdevs/atomic.hpp>
-
 namespace cdboost {
-namespace pdevs {
-namespace basic_models {
-/**
- * @brief event_stream PDEVS Model.
- *
- * event_stream PDEVS Model plays a history of events received by an input stream.
- * The list of events allows to be used as a connector to external tools.
- * The input format is "time output and a custom parser can be defined."
- *
-*/
-template<class TIME, class MSG, class T=int, class M=int> //T and M are the type expected to be read from the event_stream
-class event_stream : public atomic<TIME, MSG>
-{
-    std::shared_ptr<std::istream> _ps; //the stream
-    TIME _last;
-    TIME _next;
-    std::vector<MSG> _output;
-    TIME _prefetched_time;
-    MSG _prefetched_message;
-    void (*_process)(const std::string&, TIME&, MSG&); //Parser process reads the string and sets the time,msg
+    namespace pdevs {
+        namespace basic_models {
+            /**
+             * @brief event_stream PDEVS Model.
+             *
+             * event_stream PDEVS Model plays a history of events received by an input stream.
+             * The list of events allows to be used as a connector to external tools.
+             * The input format is "time output and a custom parser can be defined."
+             *
+             */
+            template <class TIME, class MSG, class T = int,
+                      class M =
+                          int> // T and M are the type expected to be read from the event_stream
+            class event_stream : public atomic<TIME, MSG> {
+                std::shared_ptr<std::istream> _ps; // the stream
+                TIME _last;
+                TIME _next;
+                std::vector<MSG> _output;
+                TIME _prefetched_time;
+                MSG _prefetched_message;
+                void (*_process)(const std::string &, TIME &,
+                                 MSG &); // Parser process reads the string and sets the time,msg
 
-
-    //helper function
-    void fetchUntilTimeAdvances() {
-        //making use of the prefetched values
-        _next = _prefetched_time;
-        _output = {_prefetched_message};
-        //fetching next messages
-        std::string line;
-        do
-            std::getline(*_ps, line);
-        while(!_ps->eof() && line.empty());
-        if (_ps->eof() && line.empty()){
-            //if there is no more messages, set infinity as next event time
-            _prefetched_time = atomic<TIME, MSG>::infinity;
-        } else { //else cache the las message fetched
-            //intermediary vars for casting
-            TIME t_next;
-            MSG m_next;
-            _process(line, t_next, m_next);
-            //advance until different time is fetched
-            while( _next == t_next){
-                _output.push_back(m_next);
-                line.clear();
-                std::getline(*_ps, line);
-                if (_ps->eof() && line.empty()){
-                    _prefetched_time = atomic<TIME, MSG>::infinity;
-                    return;
-                } else {
-                    _process(line, t_next, m_next);
-                }
-            }
-            //cache the last message fetched
-            if (t_next < _next) throw std::invalid_argument("event_stream: event time is not monotonically increasing");
-            _prefetched_time = t_next;
-            _prefetched_message = m_next;
-        }
-    }
-
-public:
-    /**
-     * @brief event_stream constructor sets the stream to be read and the initial time
-     * @param pis is a pointer to the input stream to be read
-     * @param init is the time the simulation of the model starts, the input MUST have absolute times greater than init time.
-     */
-    explicit event_stream(std::shared_ptr<std::istream> pis, TIME init) :
-        event_stream(pis, init,
-            [](const std::string& s, TIME& t_next, MSG& m_next){
-                            T tmp_next;
-                            M tmp_next_out;
-                            std::stringstream ss;
-                            ss.str(s);
-                            ss >> tmp_next;
-                            t_next = static_cast<TIME>(tmp_next);
-                            ss >> tmp_next_out;
-                            m_next = static_cast<MSG>(tmp_next_out);
-                            std::string thrash;
-                            ss >> thrash;
-                            if ( 0 != thrash.size()) throw std::invalid_argument("event_stream: unexpected trailing content in input line");
+                // helper function
+                void fetchUntilTimeAdvances() {
+                    // making use of the prefetched values
+                    _next   = _prefetched_time;
+                    _output = {_prefetched_message};
+                    // fetching next messages
+                    std::string line;
+                    do
+                        std::getline(*_ps, line);
+                    while (!_ps->eof() && line.empty());
+                    if (_ps->eof() && line.empty()) {
+                        // if there is no more messages, set infinity as next event time
+                        _prefetched_time = atomic<TIME, MSG>::infinity;
+                    } else { // else cache the las message fetched
+                        // intermediary vars for casting
+                        TIME t_next;
+                        MSG m_next;
+                        _process(line, t_next, m_next);
+                        // advance until different time is fetched
+                        while (_next == t_next) {
+                            _output.push_back(m_next);
+                            line.clear();
+                            std::getline(*_ps, line);
+                            if (_ps->eof() && line.empty()) {
+                                _prefetched_time = atomic<TIME, MSG>::infinity;
+                                return;
+                            } else {
+                                _process(line, t_next, m_next);
+                            }
                         }
-                    )
-    {}
-    /**
-     * @brief event_stream constructor sets the stream to be read and the initial time and a custom parser
-     * @param pis is a pointer to the input stream to be read
-     * @param init is the time the simulation of the model starts, the input MUST have absolute times greater than init time.
-     * @param process the process to parse each line of input and extract time and messages
-     */
-    explicit event_stream(std::shared_ptr<std::istream> pis, TIME init, decltype(_process) process) : _ps{pis}, _last{init}, _process(process) {
-        std::string line;
-        std::getline(*_ps, line); //needs at least one call to detect eof
-        if (_ps->eof() && line.empty()){
-            _next = atomic<TIME, MSG>::infinity;
-        } else {
-            //intermediary vars for casting
-            TIME t_next;
-            MSG m_next;
-            process(line, t_next, m_next);
-            //the first iteration needs this to run
-            _prefetched_time = t_next;
-            _prefetched_message = m_next;
-            fetchUntilTimeAdvances();
-        }
-    }
+                        // cache the last message fetched
+                        if (t_next < _next)
+                            throw std::invalid_argument(
+                                "event_stream: event time is not monotonically increasing");
+                        _prefetched_time    = t_next;
+                        _prefetched_message = m_next;
+                    }
+                }
 
-    /**
-     * @brief internal function reads the stream and prepares next event.
-     */
-    void internal() noexcept override {
-        _last = _next;
-        fetchUntilTimeAdvances();
-     }
-    /**
-     * @brief advance function time until next fetched item or infinity if EOS.
-     * @return TIME until next internal event.
-     */
-    TIME advance() const noexcept override {
-        return (_next == atomic<TIME, MSG>::infinity ? _next : _next - _last);
+              public:
+                /**
+                 * @brief event_stream constructor sets the stream to be read and the initial time
+                 * @param pis is a pointer to the input stream to be read
+                 * @param init is the time the simulation of the model starts, the input MUST have
+                 * absolute times greater than init time.
+                 */
+                explicit event_stream(std::shared_ptr<std::istream> pis, TIME init)
+                    : event_stream(pis, init, [](const std::string &s, TIME &t_next, MSG &m_next) {
+                          T tmp_next;
+                          M tmp_next_out;
+                          std::stringstream ss;
+                          ss.str(s);
+                          ss >> tmp_next;
+                          t_next = static_cast<TIME>(tmp_next);
+                          ss >> tmp_next_out;
+                          m_next = static_cast<MSG>(tmp_next_out);
+                          std::string thrash;
+                          ss >> thrash;
+                          if (0 != thrash.size())
+                              throw std::invalid_argument(
+                                  "event_stream: unexpected trailing content in input line");
+                      }) {}
+                /**
+                 * @brief event_stream constructor sets the stream to be read and the initial time
+                 * and a custom parser
+                 * @param pis is a pointer to the input stream to be read
+                 * @param init is the time the simulation of the model starts, the input MUST have
+                 * absolute times greater than init time.
+                 * @param process the process to parse each line of input and extract time and
+                 * messages
+                 */
+                explicit event_stream(std::shared_ptr<std::istream> pis, TIME init,
+                                      decltype(_process) process)
+                    : _ps{pis}, _last{init}, _process(process) {
+                    std::string line;
+                    std::getline(*_ps, line); // needs at least one call to detect eof
+                    if (_ps->eof() && line.empty()) {
+                        _next = atomic<TIME, MSG>::infinity;
+                    } else {
+                        // intermediary vars for casting
+                        TIME t_next;
+                        MSG m_next;
+                        process(line, t_next, m_next);
+                        // the first iteration needs this to run
+                        _prefetched_time    = t_next;
+                        _prefetched_message = m_next;
+                        fetchUntilTimeAdvances();
+                    }
+                }
 
-    }
-    /**
-     * @brief out function.
-     * @return the event defined in the input.
-     */
-    std::vector<MSG> out() const noexcept override { return _output; }
-    /**
-     * @brief invalid external function.
-     */
-    void external(const std::vector<MSG>& /*mb*/, const TIME& /*t*/) override { throw std::logic_error("No external input is expected in this model"); }
-    /**
-     * @brief invalid confluence function.
-     */
-    void confluence(const std::vector<MSG>& /*mb*/, const TIME& /*t*/) override { throw std::logic_error("No external input is expected in this model"); }
+                /**
+                 * @brief internal function reads the stream and prepares next event.
+                 */
+                void internal() noexcept override {
+                    _last = _next;
+                    fetchUntilTimeAdvances();
+                }
+                /**
+                 * @brief advance function time until next fetched item or infinity if EOS.
+                 * @return TIME until next internal event.
+                 */
+                TIME advance() const noexcept override {
+                    return (_next == atomic<TIME, MSG>::infinity ? _next : _next - _last);
+                }
+                /**
+                 * @brief out function.
+                 * @return the event defined in the input.
+                 */
+                std::vector<MSG> out() const noexcept override {
+                    return _output;
+                }
+                /**
+                 * @brief invalid external function.
+                 */
+                void external(const std::vector<MSG> & /*mb*/, const TIME & /*t*/) override {
+                    throw std::logic_error("No external input is expected in this model");
+                }
+                /**
+                 * @brief invalid confluence function.
+                 */
+                void confluence(const std::vector<MSG> & /*mb*/, const TIME & /*t*/) override {
+                    throw std::logic_error("No external input is expected in this model");
+                }
+            };
 
-};
-
-}
-}
-}
+        } // namespace basic_models
+    } // namespace pdevs
+} // namespace cdboost
