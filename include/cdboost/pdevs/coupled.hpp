@@ -95,7 +95,7 @@ public:
      * @brief get_description provides the model in a way a coordinator
      * can read to construct the simulation hierarchy.
      */
-    coupled_description get_description() noexcept {
+    const coupled_description& get_description() noexcept {
         //this is a good place for an assert that whole model is properly constructed
         return _desc;
     }
@@ -173,7 +173,7 @@ public:
      * @brief get_description provides the model in a way a coordinator
      * can read to construct the simulation hierarchy.
      */
-    typename coupled<TIME, MSG>::coupled_description get_description() noexcept {
+    const typename coupled<TIME, MSG>::coupled_description& get_description() noexcept {
         return coupled<TIME, MSG>::_desc;
     }
 

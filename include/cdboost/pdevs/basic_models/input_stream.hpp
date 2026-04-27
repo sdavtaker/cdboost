@@ -88,7 +88,7 @@ class input_stream : public atomic<TIME, MSG>
                 }
             }
             //cache the last message fetched
-            if (t_next < _next) throw std::exception();
+            if (t_next < _next) throw std::invalid_argument("input_stream: event time is not monotonically increasing");
             _prefetched_time = t_next;
             _prefetched_message = m_next;
         }
@@ -100,7 +100,7 @@ public:
      * @param pis is a pointer to the input stream to be read
      * @param init is the time the simulation of the model starts, the input MUST have absolute times greater than init time.
      */
-    explicit input_stream(std::shared_ptr<std::istream> pis, TIME init) noexcept :
+    explicit input_stream(std::shared_ptr<std::istream> pis, TIME init) :
         input_stream(pis, init,
             [](const std::string& s, TIME& t_next, MSG& m_next){
                             T tmp_next;
@@ -113,7 +113,7 @@ public:
                             m_next = static_cast<MSG>(tmp_next_out);
                             std::string thrash;
                             ss >> thrash;
-                            if ( 0 != thrash.size()) throw std::exception();
+                            if ( 0 != thrash.size()) throw std::invalid_argument("input_stream: unexpected trailing content in input line");
                         }
                     )
     {}
@@ -123,7 +123,7 @@ public:
      * @param init is the time the simulation of the model starts, the input MUST have absolute times greater than init time.
      * @param process the process to parse each line of input and extract time and messages
      */
-    explicit input_stream(std::shared_ptr<std::istream> pis, TIME init, decltype(_process) process)  noexcept : _ps{pis}, _last{init}, _process(process) {
+    explicit input_stream(std::shared_ptr<std::istream> pis, TIME init, decltype(_process) process) : _ps{pis}, _last{init}, _process(process) {
         std::string line;
         std::getline(*_ps, line); //needs at least one call to detect eof
         if (_ps->eof() && line.empty()){
@@ -143,7 +143,7 @@ public:
     /**
      * @brief internal function reads the stream and prepares next event.
      */
-    void internal() noexcept {
+    void internal() noexcept override {
         _last = _next;
         fetchUntilTimeAdvances();
      }
@@ -151,22 +151,22 @@ public:
      * @brief advance function time until next fetched item or infinity if EOS.
      * @return TIME until next internal event.
      */
-    TIME advance() const noexcept {
+    TIME advance() const noexcept override {
         return (_next==atomic<TIME, MSG>::infinity?_next:_next-_last);
     }
     /**
      * @brief out function.
      * @return the event defined in the input.
      */
-    std::vector<MSG> out() const noexcept { return _output; }
+    std::vector<MSG> out() const noexcept override { return _output; }
     /**
      * @brief invalid external function.
      */
-    void external(const std::vector<MSG>& mb, const TIME& t) { throw std::logic_error("No external input is expected in this model"); }
+    void external(const std::vector<MSG>& /*mb*/, const TIME& /*t*/) override { throw std::logic_error("No external input is expected in this model"); }
     /**
      * @brief invalid confluence function.
      */
-    void confluence(const std::vector<MSG>& mb, const TIME& t) { throw std::logic_error("No external input is expected in this model"); }
+    void confluence(const std::vector<MSG>& /*mb*/, const TIME& /*t*/) override { throw std::logic_error("No external input is expected in this model"); }
 
 };
 

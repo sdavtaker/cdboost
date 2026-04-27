@@ -142,7 +142,7 @@ public:
            std::vector<std::shared_ptr<coordinator<TIME, MSG, FEL>>> to_internals;
            for (auto& ints : desc.internal_coupling){
 
-               if (ints.first.get() ==  m.get()){
+               if (ints.first == m){
                    //inserting destination
                    std::shared_ptr<atomic<TIME, MSG>> int_sec_atomic = std::dynamic_pointer_cast<atomic<TIME, MSG>>(ints.second);
                    std::shared_ptr<coupled<TIME, MSG>> int_sec_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(ints.second);
@@ -387,7 +387,7 @@ public:
        for (auto& m : desc.models){
            std::vector<std::shared_ptr<coordinator<TIME, MSG, nullqueue>>> to_internals;
            for (auto& ints : desc.internal_coupling){
-               if (ints.first.get() ==  m.get() ){
+               if (ints.first == m){
                    //inserting destination
                    std::shared_ptr<atomic<TIME, MSG>> int_sec_atomic = std::dynamic_pointer_cast<atomic<TIME, MSG>>(ints.second);
                    std::shared_ptr<coupled<TIME, MSG>> int_sec_coupled = std::dynamic_pointer_cast<coupled<TIME, MSG>>(ints.second);
@@ -515,9 +515,13 @@ public:
 
             }
             //setting up next variable
-            auto next_coord = std::ranges::min_element(_subcoordinators, {},
-                                     [](const auto& pc) { return pc->next(); });
-            _next = (*next_coord)->next();
+            if (_subcoordinators.empty()) {
+                _next = infinity;
+            } else {
+                auto next_coord = std::ranges::min_element(_subcoordinators, {},
+                                         [](const auto& pc) { return pc->next(); });
+                _next = (*next_coord)->next();
+            }
         }
         _inbox.clear();
     }

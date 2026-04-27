@@ -63,23 +63,23 @@ public:
     /**
      * @brief internal function.
      */
-    void internal() noexcept {}
+    void internal() noexcept override {}
     /**
      * @brief advance function.
      * @return Time until next internal event.
      */
-    TIME advance() const noexcept { return _period; }
+    TIME advance() const noexcept override { return _period; }
     /**
      * @brief out function.
      * @return MSG defined in contruction.
      */
-    std::vector<MSG> out() const noexcept { return _outvalue; }
+    std::vector<MSG> out() const noexcept override { return _outvalue; }
     /**
      * @brief external function domain is empty, so it throws.
      * @param msg external input message.
      * @param t time the external input is received.
      */
-    void external(const std::vector<MSG>& mb, const TIME& t) { throw std::logic_error("No external input is expected by this model"); }
+    void external(const std::vector<MSG>& /*mb*/, const TIME& /*t*/) override { throw std::logic_error("No external input is expected by this model"); }
 
     /**
      * @brief confluence function.
@@ -88,7 +88,7 @@ public:
      * @param msg
      * @param t time the external input is confluent with an internal transition.
      */
-    void confluence(const std::vector<MSG>& mb, const TIME& t) { throw std::logic_error("No external input is expected by this model"); }
+    void confluence(const std::vector<MSG>& /*mb*/, const TIME& /*t*/) override { throw std::logic_error("No external input is expected by this model"); }
 
 };
 

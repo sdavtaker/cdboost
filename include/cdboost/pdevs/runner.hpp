@@ -77,7 +77,7 @@ public:
                     decltype(_out_interpreter) out_interpreter) noexcept
         : _out_stream(out_stream), _out_interpreter(out_interpreter), infinity(cm->infinity)
     {
-        _coordinator.reset(new coordinator<TIME, MSG, nullqueue>{cm});
+        _coordinator = std::make_shared<coordinator<TIME, MSG, nullqueue>>(cm);
         _next = _coordinator->init(init_time);
         _silent = false;
     }
@@ -92,7 +92,7 @@ public:
      : _out_stream( std::cerr ), //for debuging purposes
       infinity(cm->infinity)
     {
-        _coordinator.reset(new coordinator<TIME, MSG, nullqueue>{cm});
+        _coordinator = std::make_shared<coordinator<TIME, MSG, nullqueue>>(cm);
         _next = _coordinator->init(init_time);
         _silent = true;
     }

@@ -72,7 +72,7 @@ public:
      *
      * The internal function resets the counter.
      */
-    void internal() noexcept {
+    void internal() noexcept override {
         _next = atomic<TIME, MSG>::infinity;
         _counter = 0;
     }
@@ -80,12 +80,12 @@ public:
      * @brief advance function.
      * @return Time until next internal event.
      */
-    TIME advance() const noexcept { return _next; }
+    TIME advance() const noexcept override { return _next; }
     /**
      * @brief out function.
      * @return _counter
      */
-    std::vector<MSG> out() const noexcept { return std::vector<MSG>{_counter}; }
+    std::vector<MSG> out() const noexcept override { return std::vector<MSG>{_counter}; }
     /**
      * @brief external function.
      *
@@ -94,7 +94,7 @@ public:
      * @param mb bag of messages.
      * @param t time the external input is received.
      */
-    void external(const std::vector<MSG>& mb, const TIME& t) {
+    void external(const std::vector<MSG>& mb, const TIME& t) override {
         int zeros = count_if(mb.begin(), mb.end(),
                         [](const MSG& m){
                             if(0 == std::any_cast<int>(m)) return true;
@@ -116,7 +116,7 @@ public:
      * @param msg
      * @param t time the external input is confluent with an internal transition.
      */
-    void confluence(const std::vector<MSG>& mb, const TIME& t) {
+    void confluence(const std::vector<MSG>& mb, const TIME& t) override {
         internal();
         external(mb, t);
     }

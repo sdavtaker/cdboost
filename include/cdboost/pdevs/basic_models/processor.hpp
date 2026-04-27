@@ -66,7 +66,7 @@ public:
      *
      * The internal function removes the first job in the list and adjusts the time in _next
      */
-    void internal() noexcept {
+    void internal() noexcept override {
         _jobs.pop();
         _next = (0 == _jobs.size()?atomic<TIME, MSG>::infinity:_processing);
     }
@@ -74,12 +74,12 @@ public:
      * @brief advance function.
      * @return Time until next internal event.
      */
-    TIME advance() const noexcept {return _next;}
+    TIME advance() const noexcept override {return _next;}
     /**
      * @brief out function.
      * @return first job
      */
-    std::vector<MSG> out() const noexcept { return {_jobs.front()}; }
+    std::vector<MSG> out() const noexcept override { return {_jobs.front()}; }
     /**
      * @brief external function.
      *
@@ -88,7 +88,7 @@ public:
      * @param mb receives a bag of jobs.
      * @param t time the external input is received (relative to last advace).
      */
-     void external(const std::vector<MSG>& mb, const TIME& t) {
+     void external(const std::vector<MSG>& mb, const TIME& t) override {
         _next = (0 == _jobs.size()?_processing: (_next-t));
         for (auto& m :mb){
             _jobs.push(m);
@@ -100,7 +100,7 @@ public:
      * @param mb receives a bag of jobs.
      * @param t time the external input is received (relative to last advace).
      */
-    virtual void confluence(const std::vector<MSG>& mb, const TIME& t) {
+    void confluence(const std::vector<MSG>& mb, const TIME& /*t*/) override {
         internal();
         external(mb, TIME(0));
     }

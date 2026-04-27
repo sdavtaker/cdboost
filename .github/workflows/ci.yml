@@ -16,12 +16,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install GCC 13
+      - name: Install GCC 14
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-14 g++-14
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
+
+      - name: Verify C++23 append_range support
+        run: |
+          g++-14 --version
+          printf '#include <vector>\n#include <ranges>\nint main(){std::vector<int>v;std::vector<int>s{1,2};v.append_range(s);}\n' \
+            | g++-14 -std=c++23 -x c++ - -o /dev/null && echo "append_range OK" || echo "append_range FAILED"
 
       - name: Set up vcpkg
         run: |
@@ -40,10 +46,11 @@ jobs:
           cmake -B build \
             -DCMAKE_TOOLCHAIN_FILE=$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_CXX_COMPILER=g++-14
+            -DCMAKE_CXX_COMPILER=g++-14 \
+            -DCMAKE_VERBOSE_MAKEFILE=ON
 
       - name: Build
-        run: cmake --build build --parallel
+        run: cmake --build build --parallel -- VERBOSE=1
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
