@@ -31,26 +31,26 @@
 #include <sstream>
 #include <type_traits>
 
-#include <boost/any.hpp>
+#include <any>
 
-#include <boost/simulation/pdevs/basic_models/generator.hpp>
-#include <boost/simulation/pdevs/basic_models/input_stream.hpp>
-#include <boost/simulation/pdevs/runner.hpp>
+#include <cdboost/pdevs/basic_models/generator.hpp>
+#include <cdboost/pdevs/basic_models/input_stream.hpp>
+#include <cdboost/pdevs/runner.hpp>
 
-using namespace boost::simulation::pdevs;
-using namespace boost::simulation::pdevs::basic_models;
+using namespace cdboost::pdevs;
+using namespace cdboost::pdevs::basic_models;
 
 using Time    = double;
-using Message = boost::any;
+using Message = std::any;
 
 TEST_CASE("runner runs generator until time 10 (silent)", "[runner]") {
     auto pa = std::make_shared<generator<Time, Message>>(Time{1});
     auto cm = std::make_shared<coupled<Time, Message>>(
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{pa},
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{},
-        std::vector<std::pair<std::shared_ptr<boost::simulation::model<Time>>,
-                              std::shared_ptr<boost::simulation::model<Time>>>>{},
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{pa});
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{pa},
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{},
+        std::vector<std::pair<std::shared_ptr<cdboost::model<Time>>,
+                              std::shared_ptr<cdboost::model<Time>>>>{},
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{pa});
     runner<Time, Message> r(cm, Time{0});
     CHECK(r.runUntil(Time{10}) == Time{10});
 }
@@ -59,11 +59,11 @@ TEST_CASE("runner stops when model goes passive", "[runner]") {
     auto piss = std::make_shared<std::istringstream>("1 1 \n 4 4 \n 5 5 \n 6 6 \n 8 8 \n 9 9 ");
     auto pf   = std::make_shared<input_stream<Time, Message, int, int>>(piss, Time{0});
     auto cm   = std::make_shared<coupled<Time, Message>>(
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{pf},
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{},
-        std::vector<std::pair<std::shared_ptr<boost::simulation::model<Time>>,
-                              std::shared_ptr<boost::simulation::model<Time>>>>{},
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{pf});
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{pf},
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{},
+        std::vector<std::pair<std::shared_ptr<cdboost::model<Time>>,
+                              std::shared_ptr<cdboost::model<Time>>>>{},
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{pf});
     runner<Time, Message> r(cm, Time{0});
     CHECK(std::isinf(r.runUntil(Time{20})));
 }
@@ -72,11 +72,11 @@ TEST_CASE("runner stops mid-sequence and returns next event time", "[runner]") {
     auto piss = std::make_shared<std::istringstream>("1 1 \n 4 4 \n 5 5 \n 6 6 \n 8 8 \n 9 9 ");
     auto pf   = std::make_shared<input_stream<Time, Message, int, int>>(piss, Time{0});
     auto cm   = std::make_shared<coupled<Time, Message>>(
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{pf},
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{},
-        std::vector<std::pair<std::shared_ptr<boost::simulation::model<Time>>,
-                              std::shared_ptr<boost::simulation::model<Time>>>>{},
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{pf});
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{pf},
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{},
+        std::vector<std::pair<std::shared_ptr<cdboost::model<Time>>,
+                              std::shared_ptr<cdboost::model<Time>>>>{},
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{pf});
     runner<Time, Message> r(cm, Time{0});
     CHECK(r.runUntil(Time{7}) == Time{8});
 }
@@ -85,11 +85,11 @@ TEST_CASE("runner runUntilPassivate completes without throwing", "[runner]") {
     auto piss = std::make_shared<std::istringstream>("1 1 \n 4 4 \n 5 5 \n 6 6 \n 8 8 \n 9 9 ");
     auto pf   = std::make_shared<input_stream<Time, Message, int, int>>(piss, Time{0});
     auto cm   = std::make_shared<coupled<Time, Message>>(
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{pf},
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{},
-        std::vector<std::pair<std::shared_ptr<boost::simulation::model<Time>>,
-                              std::shared_ptr<boost::simulation::model<Time>>>>{},
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{pf});
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{pf},
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{},
+        std::vector<std::pair<std::shared_ptr<cdboost::model<Time>>,
+                              std::shared_ptr<cdboost::model<Time>>>>{},
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{pf});
     runner<Time, Message> r(cm, Time{0});
     CHECK_NOTHROW(r.runUntilPassivate());
 }
@@ -97,14 +97,14 @@ TEST_CASE("runner runUntilPassivate completes without throwing", "[runner]") {
 TEST_CASE("runner with output stream: generator produces correct log", "[runner][output]") {
     auto pa = std::make_shared<generator<Time, Message>>(Time{1});
     auto cm = std::make_shared<coupled<Time, Message>>(
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{pa},
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{},
-        std::vector<std::pair<std::shared_ptr<boost::simulation::model<Time>>,
-                              std::shared_ptr<boost::simulation::model<Time>>>>{},
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{pa});
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{pa},
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{},
+        std::vector<std::pair<std::shared_ptr<cdboost::model<Time>>,
+                              std::shared_ptr<cdboost::model<Time>>>>{},
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{pa});
     std::ostringstream oss;
-    runner<Time, Message> r(cm, Time{0}, oss, [](std::ostream& os, boost::any m) {
-        os << boost::any_cast<int>(m);
+    runner<Time, Message> r(cm, Time{0}, oss, [](std::ostream& os, std::any m) {
+        os << std::any_cast<int>(m);
     });
     r.runUntil(Time{10});
     CHECK(oss.str() == "1 1\n2 1\n3 1\n4 1\n5 1\n6 1\n7 1\n8 1\n9 1\n");
@@ -114,14 +114,14 @@ TEST_CASE("runner with output stream: input_stream produces correct log", "[runn
     auto piss = std::make_shared<std::istringstream>("1 1 \n 4 4 \n 5 5 \n 6 6 \n 8 8 \n 9 9 ");
     auto pf   = std::make_shared<input_stream<Time, Message, int, int>>(piss, Time{0});
     auto cm   = std::make_shared<coupled<Time, Message>>(
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{pf},
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{},
-        std::vector<std::pair<std::shared_ptr<boost::simulation::model<Time>>,
-                              std::shared_ptr<boost::simulation::model<Time>>>>{},
-        std::vector<std::shared_ptr<boost::simulation::model<Time>>>{pf});
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{pf},
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{},
+        std::vector<std::pair<std::shared_ptr<cdboost::model<Time>>,
+                              std::shared_ptr<cdboost::model<Time>>>>{},
+        std::vector<std::shared_ptr<cdboost::model<Time>>>{pf});
     std::ostringstream oss;
-    runner<Time, Message> r(cm, Time{0}, oss, [](std::ostream& os, boost::any m) {
-        os << boost::any_cast<int>(m);
+    runner<Time, Message> r(cm, Time{0}, oss, [](std::ostream& os, std::any m) {
+        os << std::any_cast<int>(m);
     });
     r.runUntilPassivate();
     CHECK(oss.str() == "1 1\n4 4\n5 5\n6 6\n8 8\n9 9\n");

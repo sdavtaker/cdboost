@@ -29,14 +29,14 @@
 #include <cmath>
 #include <vector>
 
-#include <boost/any.hpp>
+#include <any>
 
-#include <boost/simulation/pdevs/basic_models/infinite_counter.hpp>
+#include <cdboost/pdevs/basic_models/infinite_counter.hpp>
 
-using namespace boost::simulation::pdevs::basic_models;
+using namespace cdboost::pdevs::basic_models;
 
 using Time    = double;
-using Message = boost::any;
+using Message = std::any;
 
 TEST_CASE("infinite_counter counts and resets on zero input", "[infinite_counter]") {
     infinite_counter<Time, Message> ic;
@@ -47,11 +47,11 @@ TEST_CASE("infinite_counter counts and resets on zero input", "[infinite_counter
 
     ic.external(std::vector<Message>{7, 8, 9, 0}, Time{1});
     CHECK(ic.advance() == Time(0));
-    CHECK(boost::any_cast<int>(ic.out()[0]) == 9);
+    CHECK(std::any_cast<int>(ic.out()[0]) == 9);
 
-    ic.confluence(std::vector<boost::any>({0, 1, 2, 3}), Time{0});
+    ic.confluence(std::vector<std::any>({0, 1, 2, 3}), Time{0});
     CHECK(ic.advance() == Time(0));
-    CHECK(boost::any_cast<int>(ic.out()[0]) == 3);
+    CHECK(std::any_cast<int>(ic.out()[0]) == 3);
 
     ic.internal();
     CHECK(std::isinf(ic.advance()));
@@ -63,12 +63,12 @@ TEST_CASE("infinite_counter accumulates across multiple external calls", "[infin
 
     for (int i = 1; i < 11; i++) {
         for (int j = 0; j < i; j++) {
-            ic.external(std::vector<boost::any>{1, 2, 3}, Time{1});
+            ic.external(std::vector<std::any>{1, 2, 3}, Time{1});
             CHECK(std::isinf(ic.advance()));
         }
-        ic.external(std::vector<boost::any>{0}, Time{1});
+        ic.external(std::vector<std::any>{0}, Time{1});
         CHECK(ic.advance() == Time(0));
-        CHECK(boost::any_cast<int>(ic.out()[0]) == i * 3);
+        CHECK(std::any_cast<int>(ic.out()[0]) == i * 3);
         ic.internal();
         CHECK(std::isinf(ic.advance()));
     }

@@ -10,7 +10,7 @@ if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
         CACHE STRING "")
 endif()
 
-find_package(Boost REQUIRED COMPONENTS rational any)
+find_package(Boost REQUIRED COMPONENTS rational)
 
 add_library(cdboost INTERFACE)
 target_include_directories(cdboost INTERFACE

@@ -27,17 +27,35 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
-namespace boost {
-namespace simulation {
+#include <cdboost/model.hpp>
 
-template<class TIME>
-class model {
+namespace cdboost {
+namespace pdevs {
+
+template<class TIME, class MSG>
+class atomic : public model<TIME> {
   public:
-    virtual void registerDebugParameters(std::string name) noexcept {}
+    using time_type    = TIME;
+    using message_type = MSG;
+    using model_type   = atomic<TIME, MSG>;
 
-    const TIME infinity = TIME::Inf();
+    atomic() noexcept : modelName("atomic") {}
+    explicit atomic(const std::string& name) noexcept : modelName(name) {}
+
+    virtual void internal() noexcept                                     = 0;
+    virtual TIME advance() const noexcept                                = 0;
+    virtual std::vector<MSG> out() const noexcept                        = 0;
+    virtual void external(const std::vector<MSG>& mb, const TIME& t) noexcept = 0;
+    virtual void confluence(const std::vector<MSG>& mb, const TIME& t) noexcept = 0;
+
+    const std::string asString() const { return modelName; }
+    virtual void print() noexcept {}
+
+  private:
+    std::string modelName;
 };
 
-}  // namespace simulation
-}  // namespace boost
+}  // namespace pdevs
+}  // namespace cdboost

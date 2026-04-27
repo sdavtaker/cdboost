@@ -30,10 +30,9 @@
 #include <queue>
 #include <vector>
 
-#include <boost/simulation/pdevs/atomic.hpp>
+#include <cdboost/pdevs/atomic.hpp>
 
-namespace boost {
-namespace simulation {
+namespace cdboost {
 namespace pdevs {
 namespace basic_models {
 /**

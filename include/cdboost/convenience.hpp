@@ -28,10 +28,9 @@
 
 #include <memory>
 
-#include <boost/simulation/pdevs/atomic.hpp>
+#include <cdboost/pdevs/atomic.hpp>
 
-namespace boost {
-namespace simulation {
+namespace cdboost {
 
 template<class MODEL, typename... Args>
 std::shared_ptr<pdevs::atomic<typename MODEL::time_type, typename MODEL::message_type>>
@@ -39,5 +38,4 @@ make_atomic_ptr(Args... args) noexcept {
     return std::make_shared<MODEL>(std::forward<Args>(args)...);
 }
 
-}  // namespace simulation
-}  // namespace boost
+}  // namespace cdboost

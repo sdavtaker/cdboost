@@ -26,38 +26,10 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include <memory>
 
-#include <boost/simulation/model.hpp>
-
-namespace boost {
-namespace simulation {
-namespace pdevs {
-
-template<class TIME, class MSG>
-class atomic : public model<TIME> {
-  public:
-    using time_type    = TIME;
-    using message_type = MSG;
-    using model_type   = atomic<TIME, MSG>;
-
-    atomic() noexcept : modelName("atomic") {}
-    explicit atomic(const std::string& name) noexcept : modelName(name) {}
-
-    virtual void internal() noexcept                                     = 0;
-    virtual TIME advance() const noexcept                                = 0;
-    virtual std::vector<MSG> out() const noexcept                        = 0;
-    virtual void external(const std::vector<MSG>& mb, const TIME& t) noexcept = 0;
-    virtual void confluence(const std::vector<MSG>& mb, const TIME& t) noexcept = 0;
-
-    const std::string asString() const { return modelName; }
-    virtual void print() noexcept {}
-
-  private:
-    std::string modelName;
-};
-
-}  // namespace pdevs
-}  // namespace simulation
-}  // namespace boost
+#include <cdboost/convenience.hpp>
+#include <cdboost/pdevs/atomic.hpp>
+#include <cdboost/pdevs/basic_models/event_stream.hpp>
+#include <cdboost/pdevs/coordinator.hpp>
+#include <cdboost/pdevs/coupled.hpp>

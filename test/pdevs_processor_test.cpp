@@ -28,9 +28,9 @@
 
 #include <cmath>
 
-#include <boost/simulation/pdevs/basic_models/processor.hpp>
+#include <cdboost/pdevs/basic_models/processor.hpp>
 
-using namespace boost::simulation::pdevs::basic_models;
+using namespace cdboost::pdevs::basic_models;
 
 using Time    = double;
 using Message = int;

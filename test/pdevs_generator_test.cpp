@@ -26,15 +26,15 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <boost/any.hpp>
+#include <any>
 #include <boost/rational.hpp>
 
-#include <boost/simulation/pdevs/basic_models/generator.hpp>
+#include <cdboost/pdevs/basic_models/generator.hpp>
 
-using namespace boost::simulation::pdevs::basic_models;
+using namespace cdboost::pdevs::basic_models;
 
 using Time    = boost::rational<int>;
-using Message = boost::any;
+using Message = std::any;
 
 TEST_CASE("generator initial time advance equals period", "[generator]") {
     generator<Time, Message> a(Time{1});
@@ -45,7 +45,7 @@ TEST_CASE("generator advance always matches period after internal transitions", 
     for (int i = 1; i < 100; i++) {
         Time t = Time(i);
         generator<Time, Message> a(t);
-        CHECK(boost::any_cast<int>(a.out()[0]) == 1);
+        CHECK(std::any_cast<int>(a.out()[0]) == 1);
         a.internal();
         CHECK(a.advance() == t);
     }
@@ -55,7 +55,7 @@ TEST_CASE("generator always outputs the preset value", "[generator]") {
     Time t(1);
     generator<Time, Message> a(t, 5);
     for (int j = 1; j < 100; j++) {
-        CHECK(boost::any_cast<int>(a.out()[0]) == 5);
+        CHECK(std::any_cast<int>(a.out()[0]) == 5);
         a.internal();
         CHECK(a.advance() == t);
     }

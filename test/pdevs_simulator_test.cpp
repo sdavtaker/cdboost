@@ -30,20 +30,20 @@
 #include <memory>
 #include <sstream>
 
-#include <boost/any.hpp>
+#include <any>
 
-#include <boost/simulation/convenience.hpp>
-#include <boost/simulation/pdevs/basic_models/generator.hpp>
-#include <boost/simulation/pdevs/basic_models/infinite_counter.hpp>
-#include <boost/simulation/pdevs/basic_models/input_stream.hpp>
-#include <boost/simulation/pdevs/coordinator.hpp>
+#include <cdboost/convenience.hpp>
+#include <cdboost/pdevs/basic_models/generator.hpp>
+#include <cdboost/pdevs/basic_models/infinite_counter.hpp>
+#include <cdboost/pdevs/basic_models/input_stream.hpp>
+#include <cdboost/pdevs/coordinator.hpp>
 
-using namespace boost::simulation;
-using namespace boost::simulation::pdevs;
-using namespace boost::simulation::pdevs::basic_models;
+using namespace cdboost;
+using namespace cdboost::pdevs;
+using namespace cdboost::pdevs::basic_models;
 
 using Time    = double;
-using Message = boost::any;
+using Message = std::any;
 
 TEST_CASE("simulator: generator init returns period", "[simulator][generator]") {
     auto pa = make_atomic_ptr<generator<Time, Message>, Time>(Time{1});
@@ -101,7 +101,7 @@ TEST_CASE("simulator: infinite_counter receives stream then outputs count", "[si
     reply = s.collectOutputs(Time{2});
     s.advanceSimulation(Time{2});
     REQUIRE(reply.size() == 1);
-    CHECK(boost::any_cast<int>(reply[0]) == 8);
+    CHECK(std::any_cast<int>(reply[0]) == 8);
     CHECK(std::isinf(s.next()));
 }
 
@@ -130,7 +130,7 @@ TEST_CASE("simulator: infinite_counter confluence at time 1", "[simulator][infin
 
     reply = s.collectOutputs(Time{1});
     REQUIRE(reply.size() == 1);
-    CHECK(boost::any_cast<int>(reply[0]) == 4);
+    CHECK(std::any_cast<int>(reply[0]) == 4);
 
     s.advanceSimulation(Time{1});
     CHECK(s.next() == Time{2});
@@ -143,7 +143,7 @@ TEST_CASE("simulator: infinite_counter confluence at time 1", "[simulator][infin
 
     reply = s.collectOutputs(Time{2});
     REQUIRE(reply.size() == 1);
-    CHECK(boost::any_cast<int>(reply[0]) == 4);
+    CHECK(std::any_cast<int>(reply[0]) == 4);
 
     s.advanceSimulation(Time{2});
     CHECK(std::isinf(s.next()));

@@ -26,10 +26,16 @@
 
 #pragma once
 
-#include <memory>
+#include <string>
 
-#include <boost/simulation/convenience.hpp>
-#include <boost/simulation/pdevs/atomic.hpp>
-#include <boost/simulation/pdevs/basic_models/event_stream.hpp>
-#include <boost/simulation/pdevs/coordinator.hpp>
-#include <boost/simulation/pdevs/coupled.hpp>
+namespace cdboost {
+
+template<class TIME>
+class model {
+  public:
+    virtual void registerDebugParameters(std::string name) noexcept {}
+
+    const TIME infinity = TIME::Inf();
+};
+
+}  // namespace cdboost

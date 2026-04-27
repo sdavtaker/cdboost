@@ -27,60 +27,87 @@
 
 #pragma once
 
-#include <cassert>
+#include <algorithm>
 #include <vector>
 
-#include <boost/simulation/pdevs/atomic.hpp>
+#include <any>
 
-namespace boost {
-namespace simulation {
+#include <cdboost/pdevs/atomic.hpp>
+
+namespace cdboost {
 namespace pdevs {
 namespace basic_models {
+
 /**
- * @brief Generator PDEVS Model
+ * @brief InfiniteCounter PDEVS Model.
  *
- * Generator PDEVS Model(period, outvalue):
- * - X = {}
- * - Y = {outvalue}
- * - S = {passive, active} x Multiples(period)
- * - internal(phase, t) = ("active", period)
- * - external = {}
- * - out ("active", t) = outvalue
- * - advance(phase, t) = period - t
+ * InfiniteCounter PDEVS Model:
+ * - X = N
+ * - Y = N
+ * - S = {passive, active} x R+ x N
+ * - internal(phase, t, count) = (passive, t, count)
+ * - external(passive, t, count, e, x)=
+ *           (passive, t-e, count+1) if x != 0
+ *           (active, 0, 0) otherwise
+ * - confluence(*) = external(active, 0, internal(phase, t, count))
+ * - out (active, t, count) = count
+ * - advance(phase, t, count) = t
 */
+
 template<class TIME, class MSG>
-class generator : public atomic<TIME, MSG>
+class infinite_counter : public atomic<TIME, MSG>
 {
-    TIME _period;
-    std::vector<MSG> _outvalue;
+    //state
+    TIME _next;
+    int _counter;
 public:
     /**
-     * @brief Generator constructor.
-     *
-     * @param period Amount of time between ticks.
-     * @param outvalue Value to be returned by out function.
+     * @brief InfiniteCounter constructor.
      */
-    explicit generator(TIME period, MSG outvalue=1) noexcept : _period(period), _outvalue(std::vector<MSG>{outvalue}) {}
+    explicit infinite_counter() noexcept : atomic<TIME, MSG>(), _counter(0){
+        _next = atomic<TIME, MSG>::infinity;
+    }
     /**
-     * @brief internal function.
+     * @brief internal function
+     *
+     * The internal function resets the counter.
      */
-    void internal() noexcept {}
+    void internal() noexcept {
+        _next = atomic<TIME, MSG>::infinity;
+        _counter = 0;
+    }
     /**
      * @brief advance function.
      * @return Time until next internal event.
      */
-    TIME advance() const noexcept { return _period; }
+    TIME advance() const noexcept { return _next; }
     /**
      * @brief out function.
-     * @return MSG defined in contruction.
+     * @return _counter
      */
-    std::vector<MSG> out() const noexcept { return _outvalue; }
+    std::vector<MSG> out() const noexcept { return std::vector<MSG>{_counter}; }
     /**
-     * @brief external function domain is empty, so it throws.
-     * @param msg external input message.
+     * @brief external function.
+     *
+     * If the external function receives any 0 trigger the output setting the ta to 0.
+     * The function also increments the counter for each received message
+     * @param mb bag of messages.
      * @param t time the external input is received.
      */
-    void external(const std::vector<MSG>& mb, const TIME& t) noexcept { assert(false && "No external input is expected by this model"); }
+    void external(const std::vector<MSG>& mb, const TIME& t) noexcept {
+        int zeros = count_if(mb.begin(), mb.end(),
+                        [](const MSG& m){
+                            if(0 == std::any_cast<int>(m)) return true;
+                            else return false;
+                        });
+         if ( zeros ){
+            _next = TIME{0};
+            _counter += mb.size() - zeros;
+
+        } else {
+            _counter += mb.size();
+        }
+    }
 
     /**
      * @brief confluence function.
@@ -89,7 +116,10 @@ public:
      * @param msg
      * @param t time the external input is confluent with an internal transition.
      */
-    void confluence(const std::vector<MSG>& mb, const TIME& t)  noexcept  { assert(false && "No external input is expected by this model"); }
+    void confluence(const std::vector<MSG>& mb, const TIME& t) noexcept {
+        internal();
+        external(mb, t);
+    }
 
 };
 

@@ -28,13 +28,13 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
-#include <boost/simulation.hpp>
-#include <boost/simulation/pdevs/basic_models/generator.hpp>
+#include <cdboost/cdboost.hpp>
+#include <cdboost/pdevs/basic_models/generator.hpp>
 #include <boost/rational.hpp>
 
-using namespace boost::simulation;
-using namespace boost::simulation::pdevs;
-using namespace boost::simulation::pdevs::basic_models;
+using namespace cdboost;
+using namespace cdboost::pdevs;
+using namespace cdboost::pdevs::basic_models;
 using namespace std;
 
 

@@ -2,7 +2,6 @@
     "name": "cdboost",
     "version": "0.2.0",
     "dependencies": [
-        "boost-any",
         "boost-rational",
         "catch2"
     ]

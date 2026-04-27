@@ -31,20 +31,20 @@
 #include <utility>
 #include <vector>
 
-#include <boost/any.hpp>
+#include <any>
 #include <boost/rational.hpp>
 
-#include <boost/simulation/convenience.hpp>
-#include <boost/simulation/pdevs/basic_models/generator.hpp>
-#include <boost/simulation/pdevs/basic_models/infinite_counter.hpp>
-#include <boost/simulation/pdevs/coupled.hpp>
+#include <cdboost/convenience.hpp>
+#include <cdboost/pdevs/basic_models/generator.hpp>
+#include <cdboost/pdevs/basic_models/infinite_counter.hpp>
+#include <cdboost/pdevs/coupled.hpp>
 
-using namespace boost::simulation;
-using namespace boost::simulation::pdevs;
-using namespace boost::simulation::pdevs::basic_models;
+using namespace cdboost;
+using namespace cdboost::pdevs;
+using namespace cdboost::pdevs::basic_models;
 
 using Time    = boost::rational<int>;
-using Message = boost::any;
+using Message = std::any;
 
 TEST_CASE("coupled with single generator via initializer_list", "[coupled]") {
     auto pg = make_atomic_ptr<generator<Time, Message>, Time>(Time{1});

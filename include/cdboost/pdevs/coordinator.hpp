@@ -34,10 +34,9 @@
 #include <queue>
 #include <vector>
 
-#include <boost/simulation/pdevs/coupled.hpp>
+#include <cdboost/pdevs/coupled.hpp>
 
-namespace boost {
-namespace simulation {
+namespace cdboost {
 namespace pdevs {
 
 

@@ -30,10 +30,9 @@
 #include <memory>
 #include <vector>
 
-#include <boost/simulation/pdevs/coordinator.hpp>
+#include <cdboost/pdevs/coordinator.hpp>
 
-namespace boost {
-namespace simulation {
+namespace cdboost {
 namespace pdevs {
 
 /**
@@ -151,5 +150,4 @@ public:
 
 
 }  // namespace pdevs
-}  // namespace simulation
-}  // namespace boost
+}  // namespace cdboost

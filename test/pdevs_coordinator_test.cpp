@@ -31,19 +31,19 @@
 #include <memory>
 #include <sstream>
 
-#include <boost/any.hpp>
+#include <any>
 
-#include <boost/simulation/convenience.hpp>
-#include <boost/simulation/pdevs/basic_models/generator.hpp>
-#include <boost/simulation/pdevs/basic_models/infinite_counter.hpp>
-#include <boost/simulation/pdevs/basic_models/input_stream.hpp>
-#include <boost/simulation/pdevs/basic_models/processor.hpp>
-#include <boost/simulation/pdevs/coordinator.hpp>
-#include <boost/simulation/pdevs/coupled.hpp>
+#include <cdboost/convenience.hpp>
+#include <cdboost/pdevs/basic_models/generator.hpp>
+#include <cdboost/pdevs/basic_models/infinite_counter.hpp>
+#include <cdboost/pdevs/basic_models/input_stream.hpp>
+#include <cdboost/pdevs/basic_models/processor.hpp>
+#include <cdboost/pdevs/coordinator.hpp>
+#include <cdboost/pdevs/coupled.hpp>
 
-using namespace boost::simulation;
-using namespace boost::simulation::pdevs;
-using namespace boost::simulation::pdevs::basic_models;
+using namespace cdboost;
+using namespace cdboost::pdevs;
+using namespace cdboost::pdevs::basic_models;
 
 using Time = double;
 
@@ -61,7 +61,7 @@ class NoConfluenceProcessor : public processor<TIME, MSG> {
 
 TEMPLATE_TEST_CASE(
     "coordinator pqv: single generator produces right output", "[coordinator][pqv]",
-    boost::any, int) {
+    std::any, int) {
     using MSG = TestType;
     auto pa   = std::make_shared<generator<Time, MSG>>(Time{1}, MSG{2});
     auto cm   = std::make_shared<coupled<Time, MSG>>(
@@ -78,12 +78,12 @@ TEMPLATE_TEST_CASE(
     t = c->next();
     CHECK(t == Time(2));
     REQUIRE(reply.size() == 1);
-    CHECK(boost::any_cast<int>(reply[0]) == 2);
+    CHECK(std::any_cast<int>(reply[0]) == 2);
 }
 
 TEMPLATE_TEST_CASE(
     "coordinator pqv: three cascaded generators produce correct output sequence",
-    "[coordinator][pqv]", boost::any, int) {
+    "[coordinator][pqv]", std::any, int) {
     using MSG = TestType;
     auto pa1  = std::make_shared<generator<Time, MSG>>(Time{1}, MSG{1});
     auto cm1  = std::make_shared<coupled<Time, MSG>>(
@@ -113,7 +113,7 @@ TEMPLATE_TEST_CASE(
     t = c->next();
     CHECK(t == Time{2});
     REQUIRE(reply.size() == 1);
-    CHECK(boost::any_cast<int>(reply[0]) == 1);
+    CHECK(std::any_cast<int>(reply[0]) == 1);
 
     reply = c->collectOutputs(t);
     c->advanceSimulation(Time{2});
@@ -121,15 +121,15 @@ TEMPLATE_TEST_CASE(
     CHECK(t == Time{3});
     REQUIRE(reply.size() == 2);
     CHECK(std::count_if(reply.begin(), reply.end(),
-                        [](MSG& m) { return boost::any_cast<int>(m) == 1; }) == 1);
+                        [](MSG& m) { return std::any_cast<int>(m) == 1; }) == 1);
     CHECK(std::count_if(reply.begin(), reply.end(),
-                        [](MSG& m) { return boost::any_cast<int>(m) == 2; }) == 1);
+                        [](MSG& m) { return std::any_cast<int>(m) == 2; }) == 1);
 }
 
 // --- nullqueue coordinator ---
 
 TEST_CASE("coordinator nq: single generator produces right output", "[coordinator][nq]") {
-    using MSG = boost::any;
+    using MSG = std::any;
     auto pa   = std::make_shared<generator<Time, MSG>>(Time{1}, MSG{2});
     auto cm   = std::make_shared<coupled<Time, MSG>>(
         std::vector<std::shared_ptr<model<Time>>>{pa},
@@ -145,11 +145,11 @@ TEST_CASE("coordinator nq: single generator produces right output", "[coordinato
     t = c->next();
     CHECK(t == Time(2));
     REQUIRE(reply.size() == 1);
-    CHECK(boost::any_cast<int>(reply[0]) == 2);
+    CHECK(std::any_cast<int>(reply[0]) == 2);
 }
 
 TEST_CASE("coordinator nq: generator to infinite_counter with manual reset", "[coordinator][nq]") {
-    using MSG = boost::any;
+    using MSG = std::any;
     auto pg   = std::make_shared<generator<Time, MSG>>(Time{2}, MSG{1});
     auto pic  = std::make_shared<infinite_counter<Time, MSG>>();
     auto piss = std::make_shared<std::istringstream>(" 3 0 ");
@@ -182,11 +182,11 @@ TEST_CASE("coordinator nq: generator to infinite_counter with manual reset", "[c
     t = c->next();
     CHECK(t == Time{4});
     REQUIRE(reply.size() == 1);
-    CHECK(boost::any_cast<int>(reply[0]) == 1);
+    CHECK(std::any_cast<int>(reply[0]) == 1);
 }
 
 TEST_CASE("coordinator nq: two generators to infinite_counter", "[coordinator][nq]") {
-    using MSG = boost::any;
+    using MSG = std::any;
     auto pg1  = std::make_shared<generator<Time, MSG>>(Time{1}, MSG{1});
     auto pg2  = std::make_shared<generator<Time, MSG>>(Time{2}, MSG{0});
     auto pic  = std::make_shared<infinite_counter<Time, MSG>>();
@@ -218,12 +218,12 @@ TEST_CASE("coordinator nq: two generators to infinite_counter", "[coordinator][n
     t = c->next();
     CHECK(t == Time{3});
     REQUIRE(reply.size() == 1);
-    CHECK(boost::any_cast<int>(reply[0]) == 2);
+    CHECK(std::any_cast<int>(reply[0]) == 2);
 }
 
 TEST_CASE("coordinator nq: confluence not called when generator output precedes processor",
           "[coordinator][nq]") {
-    using MSG = boost::any;
+    using MSG = std::any;
     auto pg   = std::make_shared<generator<Time, MSG>>(Time{2}, MSG{1});
     auto pp   = std::make_shared<processor<Time, MSG>>(Time{2});
     auto pt   = std::make_shared<NoConfluenceProcessor<Time, MSG>>(Time{2});

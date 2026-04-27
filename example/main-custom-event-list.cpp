@@ -28,13 +28,13 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
-#include <boost/simulation.hpp>
-#include <boost/simulation/pdevs/basic_models/generator.hpp>
-#include <boost/any.hpp>
+#include <cdboost/cdboost.hpp>
+#include <cdboost/pdevs/basic_models/generator.hpp>
+#include <any>
 
-using namespace boost::simulation;
-using namespace boost::simulation::pdevs;
-using namespace boost::simulation::pdevs::basic_models;
+using namespace cdboost;
+using namespace cdboost::pdevs;
+using namespace cdboost::pdevs::basic_models;
 using namespace std;
 
 using hclock=chrono::high_resolution_clock;
@@ -49,11 +49,11 @@ int main(){
 
     cout << "Creating the pdevs istream model" << endl;
     // In this model the stream has integer Times and sequence of char Messages.
-    // We need to convert those to double and boost::any, the process function is called
+    // We need to convert those to double and std::any, the process function is called
     // in each line to extract one time and one message at the time.
 
-    auto pf = make_atomic_ptr<istream<double, boost::any, int, string>, shared_ptr<istringstream>, double>(piss, double(0),
-                [](const string& s, double& t_next, boost::any& m_next)->void{ //parsing function
+    auto pf = make_atomic_ptr<istream<double, std::any, int, string>, shared_ptr<istringstream>, double>(piss, double(0),
+                [](const string& s, double& t_next, std::any& m_next)->void{ //parsing function
             //intermediary vars for casting
             int tmp_next;
             string tmp_next_out;
@@ -62,7 +62,7 @@ int main(){
             ss >> tmp_next;
             t_next = static_cast<double>(tmp_next);
             ss >> tmp_next_out;
-            m_next = static_cast<boost::any>(tmp_next_out);
+            m_next = static_cast<std::any>(tmp_next_out);
             string thrash;
             ss >> thrash;
             if ( 0 != thrash.size()) throw exception();
@@ -70,11 +70,11 @@ int main(){
 
     cout << "Coupling the models and connecting to the coupled output" << endl;
 
-    shared_ptr<coupled<double, boost::any>> player( new coupled<double, boost::any>{{pf}, {}, {}, {pf}});
+    shared_ptr<coupled<double, std::any>> player( new coupled<double, std::any>{{pf}, {}, {}, {pf}});
 
     cout << "Preparing runner" << endl;
     double initial_time{0};
-    runner<double, boost::any> r(player, initial_time, cout, [](ostream& os, boost::any m){ os << boost::any_cast<string>(m);});
+    runner<double, std::any> r(player, initial_time, cout, [](ostream& os, std::any m){ os << std::any_cast<string>(m);});
 
     cout << "Starting simulation until all events are consumed" << endl;
 

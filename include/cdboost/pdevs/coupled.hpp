@@ -31,10 +31,9 @@
 #include <utility>
 #include <vector>
 
-#include <boost/simulation/pdevs/atomic.hpp>
+#include <cdboost/pdevs/atomic.hpp>
 
-namespace boost {
-namespace simulation {
+namespace cdboost {
 namespace pdevs {
 
 /**
@@ -275,5 +274,4 @@ public:
 };
 
 }  // namespace pdevs
-}  // namespace simulation
-}  // namespace boost
+}  // namespace cdboost
