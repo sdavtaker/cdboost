@@ -26,58 +26,49 @@
 
 #include <boost/rational.hpp>
 
-#include <algorithm>
 #include <cdboost/cdboost.hpp>
 #include <cdboost/pdevs/basic_models/generator.hpp>
 #include <cdboost/rational_time.hpp>
-#include <chrono>
-#include <iostream>
+#include <memory>
+#include <string>
 
 using namespace cdboost;
 using namespace cdboost::pdevs;
 using namespace cdboost::pdevs::basic_models;
-using namespace std;
 
-using hclock = chrono::high_resolution_clock;
-
-// This example is the simulation of a clock with 3 needles (H,M,S)
+// Simulation of a clock with 3 needles (hour, minute, second) using rational time.
 
 int main() {
-    cout << "Creating the atomic models for the 3 needles" << endl;
+    cdboost::log::init();
+
+    cdboost::log::emit(cdboost::log::level::info, "model_setup",
+                       "Creating atomic models for 3 needles");
 
     auto second =
-        make_atomic_ptr<generator<boost::rational<int>, string>, boost::rational<int>, string>(
-            boost::rational<int>{1}, string("second"));
+        make_atomic_ptr<generator<boost::rational<int>, std::string>, boost::rational<int>,
+                        std::string>(boost::rational<int>{1}, std::string("second"));
     auto minute =
-        make_atomic_ptr<generator<boost::rational<int>, string>, boost::rational<int>, string>(
-            boost::rational<int>{60}, string("minute"));
-    auto hour =
-        make_atomic_ptr<generator<boost::rational<int>, string>, boost::rational<int>, string>(
-            boost::rational<int>{3600}, string("hour"));
+        make_atomic_ptr<generator<boost::rational<int>, std::string>, boost::rational<int>,
+                        std::string>(boost::rational<int>{60}, std::string("minute"));
+    auto hour = make_atomic_ptr<generator<boost::rational<int>, std::string>, boost::rational<int>,
+                                std::string>(boost::rational<int>{3600}, std::string("hour"));
 
-    cout << "Coupling the models into a clock model, the 3 needles make output" << endl;
+    cdboost::log::emit(cdboost::log::level::info, "model_setup",
+                       "Coupling the 3 needles into a clock model");
 
-    shared_ptr<coupled<boost::rational<int>, string>> clock(
-        new coupled<boost::rational<int>, string>{
+    std::shared_ptr<coupled<boost::rational<int>, std::string>> clock(
+        new coupled<boost::rational<int>, std::string>{
             {second, minute, hour}, {}, {}, {second, minute, hour}});
 
-    cout << "Preparing runner" << endl;
     boost::rational<int> initial_time{0};
-    runner<boost::rational<int>, string> r(clock, initial_time, cout,
-                                           [](ostream &os, string m) { os << m; });
     boost::rational<int> end_time{7200}; // 2 hours
 
-    std::cout << "Starting simulation until time:" << end_time << "seconds" << std::endl;
+    cdboost::log::emit(cdboost::log::level::info, "model_setup",
+                       std::format("Starting simulation until time: 7200/1 seconds"));
 
-    auto start = hclock::now(); // to measure simulation execution time
+    runner<boost::rational<int>, std::string> r(clock, initial_time,
+                                                [](const std::string &m) { return m; });
 
-    end_time = r.runUntil(end_time);
-
-    auto elapsed = std::chrono::duration_cast<std::chrono::duration<double, std::ratio<1>>>(
-                       hclock::now() - start)
-                       .count();
-
-    cout << "Finished simulation with time: " << end_time << "sec" << endl;
-    cout << "Simulation took:" << elapsed << "sec" << endl;
+    r.runUntil(end_time);
     return 0;
 }

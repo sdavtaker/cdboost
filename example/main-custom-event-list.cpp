@@ -24,71 +24,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <algorithm>
 #include <any>
 #include <cdboost/cdboost.hpp>
 #include <cdboost/pdevs/basic_models/generator.hpp>
-#include <chrono>
-#include <iostream>
+#include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 using namespace cdboost;
 using namespace cdboost::pdevs;
 using namespace cdboost::pdevs::basic_models;
-using namespace std;
 
-using hclock = chrono::high_resolution_clock;
-
-// This example shows how to process custom event lists with the pdevs istream model.
+// Demonstrates processing a custom event list where messages are strings parsed from a stream.
 
 int main() {
+    cdboost::log::init();
 
-    cout << "Creating an input stream to be processed by the istream atomic model" << endl;
-    shared_ptr<istringstream> piss{new istringstream{}};
+    cdboost::log::emit(cdboost::log::level::info, "model_setup",
+                       "Creating input stream for custom event list");
+
+    std::shared_ptr<std::istringstream> piss{new std::istringstream{}};
     piss->str("1 hello \n 1 world \n 2 hello \n 2 world");
 
-    cout << "Creating the pdevs istream model" << endl;
-    // In this model the stream has integer Times and sequence of char Messages.
-    // We need to convert those to double and std::any, the process function is called
-    // in each line to extract one time and one message at the time.
+    cdboost::log::emit(cdboost::log::level::info, "model_setup",
+                       "Creating pdevs istream model with string messages");
 
-    auto pf = make_atomic_ptr<input_stream<double, std::any, int, string>,
-                              shared_ptr<istringstream>, double>(
-        piss, double(0),
-        [](const string &s, double &t_next, std::any &m_next) -> void { // parsing function
-            // intermediary vars for casting
+    auto pf = make_atomic_ptr<input_stream<double, std::any, int, std::string>,
+                              std::shared_ptr<std::istringstream>, double>(
+        piss, double(0), [](const std::string &s, double &t_next, std::any &m_next) {
             int tmp_next;
-            string tmp_next_out;
-            stringstream ss;
+            std::string tmp_next_out;
+            std::stringstream ss;
             ss.str(s);
             ss >> tmp_next;
             t_next = static_cast<double>(tmp_next);
             ss >> tmp_next_out;
             m_next = static_cast<std::any>(tmp_next_out);
-            string thrash;
+            std::string thrash;
             ss >> thrash;
-            if (0 != thrash.size())
-                throw exception();
+            if (!thrash.empty())
+                throw std::runtime_error("unexpected token in event stream");
         });
 
-    cout << "Coupling the models and connecting to the coupled output" << endl;
+    cdboost::log::emit(cdboost::log::level::info, "model_setup",
+                       "Coupling model and running until all events are consumed");
 
-    shared_ptr<coupled<double, std::any>> player(new coupled<double, std::any>{{pf}, {}, {}, {pf}});
+    std::shared_ptr<coupled<double, std::any>> player(
+        new coupled<double, std::any>{{pf}, {}, {}, {pf}});
 
-    cout << "Preparing runner" << endl;
     double initial_time{0};
-    runner<double, std::any> r(player, initial_time, cout,
-                               [](ostream &os, std::any m) { os << std::any_cast<string>(m); });
-
-    cout << "Starting simulation until all events are consumed" << endl;
-
-    auto start = hclock::now(); // to measure simulation execution time
+    runner<double, std::any> r(player, initial_time, [](const std::any &m) -> std::string {
+        return std::any_cast<std::string>(m);
+    });
 
     r.runUntilPassivate();
-
-    auto elapsed =
-        chrono::duration_cast<chrono::duration<double, ratio<1>>>(hclock::now() - start).count();
-
-    cout << "Finished simulation" << endl;
-    cout << "Simulation took:" << elapsed << "sec" << endl;
     return 0;
 }

@@ -26,8 +26,10 @@
 
 #pragma once
 
+#include <cdboost/log.hpp>
 #include <cdboost/pdevs/coordinator.hpp>
-#include <iostream>
+#include <chrono>
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -43,54 +45,45 @@ namespace cdboost {
          */
         template <class TIME, class MSG, template <class, class> class FEL = nullqueue>
         class runner {
-            TIME _next; // next scheduled event
-            std::shared_ptr<coordinator<TIME, MSG, nullqueue>>
-                _coordinator; // ecoordinator of the top level coupled model.
-            bool _silent;
-            std::ostream &_out_stream;
-            void (*_out_interpreter)(std::ostream &, MSG);
+            TIME _next;
+            std::shared_ptr<coordinator<TIME, MSG, nullqueue>> _coordinator;
+            std::function<std::string(const MSG &)> _msg_formatter; // empty = suppress tick output
+            const TIME infinity;
 
-            void process_output(TIME t, std::vector<MSG> &m) noexcept {
+            void process_output(const TIME &t, std::vector<MSG> &m) {
+                if (!_msg_formatter)
+                    return;
                 for (auto &msg : m) {
-                    _out_stream << t << " ";
-                    _out_interpreter(_out_stream, msg);
-                    _out_stream << std::endl;
+                    cdboost::log::emit(cdboost::log::level::info, "tick", _msg_formatter(msg),
+                                       cdboost::log::to_sim_double(t));
                 }
             }
 
-            const TIME infinity;
-
           public:
-            // contructors
             /**
-             * @brief Runner constructing from a M model connected to an output.
+             * @brief Runner constructing from a coupled model with message output.
              * @param cm is the coupled model to simulate.
              * @param init_time is the initial time of the simulation.
-             * @param out_stream is where the model output goes for displaying.
-             * @param out_interpreter a function to handle the insertion of
-             *        model output messages into the out_stream.
+             * @param msg_formatter converts a model output message to a string for the log msg
+             *        field. Called once per message at each output-producing tick.
              */
             explicit runner(std::shared_ptr<coupled<TIME, MSG>> cm, const TIME &init_time,
-                            std::ostream &out_stream,
-                            decltype(_out_interpreter) out_interpreter) noexcept
-                : _out_stream(out_stream), _out_interpreter(out_interpreter),
-                  infinity(cm->infinity) {
+                            std::function<std::string(const MSG &)> msg_formatter) noexcept
+                : _msg_formatter(std::move(msg_formatter)), infinity(cm->infinity) {
                 _coordinator = std::make_shared<coordinator<TIME, MSG, nullqueue>>(cm);
                 _next        = _coordinator->init(init_time);
-                _silent      = false;
             }
 
             /**
-             * @brief Runner constructing from a M model, its silent, no output.
-             * @param cm is the coupled model in Extended DEVS to simulate.
+             * @brief Runner constructing from a coupled model without message output.
+             *        Tick events are suppressed; simulation_start/end/performance are still logged.
+             * @param cm is the coupled model to simulate.
              * @param init_time is the initial time of the simulation.
              */
             explicit runner(std::shared_ptr<coupled<TIME, MSG>> cm, const TIME &init_time) noexcept
-                : _out_stream(std::cerr), // for debuging purposes
-                  infinity(cm->infinity) {
+                : infinity(cm->infinity) {
                 _coordinator = std::make_shared<coordinator<TIME, MSG, nullqueue>>(cm);
                 _next        = _coordinator->init(init_time);
-                _silent      = true;
             }
 
             /**
@@ -100,22 +93,27 @@ namespace cdboost {
              * @return the TIME of the next event to happen when simulation stopped.
              */
             TIME runUntil(const TIME &t) noexcept {
-                if (_silent) {
-                    while (_next < t) {
-                        _coordinator->advanceSimulation(_next);
-                        _next = _coordinator->next();
-                    }
+                auto wall_start = std::chrono::steady_clock::now();
+                cdboost::log::emit(cdboost::log::level::info, "simulation_start",
+                                   "Starting simulation", cdboost::log::to_sim_double(_next));
 
-                } else {
-                    while (_next < t) {
-                        auto out = _coordinator->collectOutputs(_next);
-                        if (!out.empty())
-                            process_output(_next, out);
-
-                        _coordinator->advanceSimulation(_next);
-                        _next = _coordinator->next();
-                    }
+                while (_next < t) {
+                    auto out = _coordinator->collectOutputs(_next);
+                    if (!out.empty())
+                        process_output(_next, out);
+                    _coordinator->advanceSimulation(_next);
+                    _next = _coordinator->next();
                 }
+
+                cdboost::log::emit(cdboost::log::level::info, "simulation_end", "Simulation ended",
+                                   cdboost::log::to_sim_double(t));
+
+                auto wall_end = std::chrono::steady_clock::now();
+                auto elapsed  = std::chrono::duration<double>(wall_end - wall_start).count();
+                cdboost::log::emit(cdboost::log::level::info, "performance",
+                                   std::format("Wall time: {} sec", elapsed));
+
+                cdboost::log::flush();
                 return _next;
             }
 
@@ -124,21 +122,28 @@ namespace cdboost {
              * internal event to happen.
              */
             void runUntilPassivate() noexcept {
-                if (_silent) {
-                    while (_next != infinity) {
-                        _coordinator->advanceSimulation(_next);
-                        _next = _coordinator->next();
-                    }
-                } else {
-                    while (_next != infinity) {
-                        auto out = _coordinator->collectOutputs(_next);
-                        if (!out.empty())
-                            process_output(_next, out);
+                auto wall_start = std::chrono::steady_clock::now();
+                cdboost::log::emit(cdboost::log::level::info, "simulation_start",
+                                   "Starting simulation until passivation",
+                                   cdboost::log::to_sim_double(_next));
 
-                        _coordinator->advanceSimulation(_next);
-                        _next = _coordinator->next();
-                    }
+                while (_next != infinity) {
+                    auto out = _coordinator->collectOutputs(_next);
+                    if (!out.empty())
+                        process_output(_next, out);
+                    _coordinator->advanceSimulation(_next);
+                    _next = _coordinator->next();
                 }
+
+                cdboost::log::emit(cdboost::log::level::info, "simulation_end",
+                                   "Simulation passivated");
+
+                auto wall_end = std::chrono::steady_clock::now();
+                auto elapsed  = std::chrono::duration<double>(wall_end - wall_start).count();
+                cdboost::log::emit(cdboost::log::level::info, "performance",
+                                   std::format("Wall time: {} sec", elapsed));
+
+                cdboost::log::flush();
             }
         };
 

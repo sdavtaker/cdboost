@@ -24,6 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <algorithm>
 #include <any>
 #include <catch2/catch_test_macros.hpp>
 #include <cdboost/pdevs/basic_models/generator.hpp>
@@ -31,8 +32,9 @@
 #include <cdboost/pdevs/runner.hpp>
 #include <cmath>
 #include <memory>
-#include <sstream>
+#include <string>
 #include <type_traits>
+#include <vector>
 
 using namespace cdboost::pdevs;
 using namespace cdboost::pdevs::basic_models;
@@ -91,7 +93,7 @@ TEST_CASE("runner runUntilPassivate completes without throwing", "[runner]") {
     CHECK_NOTHROW(r.runUntilPassivate());
 }
 
-TEST_CASE("runner with output stream: generator produces correct log", "[runner][output]") {
+TEST_CASE("runner with formatter: generator formatter called 9 times with value 1", "[runner]") {
     auto pa = std::make_shared<generator<Time, Message>>(Time{1});
     auto cm = std::make_shared<coupled<Time, Message>>(
         std::vector<std::shared_ptr<cdboost::model<Time>>>{pa},
@@ -99,14 +101,18 @@ TEST_CASE("runner with output stream: generator produces correct log", "[runner]
         std::vector<std::pair<std::shared_ptr<cdboost::model<Time>>,
                               std::shared_ptr<cdboost::model<Time>>>>{},
         std::vector<std::shared_ptr<cdboost::model<Time>>>{pa});
-    std::ostringstream oss;
-    runner<Time, Message> r(cm, Time{0}, oss,
-                            [](std::ostream &os, std::any m) { os << std::any_cast<int>(m); });
+    std::vector<std::string> captured;
+    runner<Time, Message> r(cm, Time{0}, [&](const std::any &m) -> std::string {
+        auto s = std::to_string(std::any_cast<int>(m));
+        captured.push_back(s);
+        return s;
+    });
     r.runUntil(Time{10});
-    CHECK(oss.str() == "1 1\n2 1\n3 1\n4 1\n5 1\n6 1\n7 1\n8 1\n9 1\n");
+    REQUIRE(captured.size() == 9);
+    CHECK(std::all_of(captured.begin(), captured.end(), [](const auto &s) { return s == "1"; }));
 }
 
-TEST_CASE("runner with output stream: input_stream produces correct log", "[runner][output]") {
+TEST_CASE("runner with formatter: input_stream formatter called for each event", "[runner]") {
     auto piss = std::make_shared<std::istringstream>("1 1 \n 4 4 \n 5 5 \n 6 6 \n 8 8 \n 9 9 ");
     auto pf   = std::make_shared<input_stream<Time, Message, int, int>>(piss, Time{0});
     auto cm   = std::make_shared<coupled<Time, Message>>(
@@ -115,9 +121,18 @@ TEST_CASE("runner with output stream: input_stream produces correct log", "[runn
         std::vector<std::pair<std::shared_ptr<cdboost::model<Time>>,
                                 std::shared_ptr<cdboost::model<Time>>>>{},
         std::vector<std::shared_ptr<cdboost::model<Time>>>{pf});
-    std::ostringstream oss;
-    runner<Time, Message> r(cm, Time{0}, oss,
-                            [](std::ostream &os, std::any m) { os << std::any_cast<int>(m); });
+    std::vector<std::string> captured;
+    runner<Time, Message> r(cm, Time{0}, [&](const std::any &m) -> std::string {
+        auto s = std::to_string(std::any_cast<int>(m));
+        captured.push_back(s);
+        return s;
+    });
     r.runUntilPassivate();
-    CHECK(oss.str() == "1 1\n4 4\n5 5\n6 6\n8 8\n9 9\n");
+    REQUIRE(captured.size() == 6);
+    CHECK(captured[0] == "1");
+    CHECK(captured[1] == "4");
+    CHECK(captured[2] == "5");
+    CHECK(captured[3] == "6");
+    CHECK(captured[4] == "8");
+    CHECK(captured[5] == "9");
 }
