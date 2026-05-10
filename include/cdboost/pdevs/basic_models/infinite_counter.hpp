@@ -95,7 +95,7 @@ namespace cdboost {
                  * @param mb bag of messages.
                  * @param t time the external input is received.
                  */
-                void external(const std::vector<MSG> &mb, const TIME &t) override {
+                void external(const std::vector<MSG> &mb, const TIME &) override {
                     // Requires MSG == std::any wrapping int; any_cast throws bad_any_cast
                     // otherwise.
                     int zeros = count_if(mb.begin(), mb.end(), [](const MSG &m) {
