@@ -1,4 +1,4 @@
-# cdboost
+# cdboost [![License](https://img.shields.io/badge/License-BSD%202--Clause-orange.svg)](https://opensource.org/licenses/BSD-2-Clause) [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/sdavtaker/cdboost/badge)](https://scorecard.dev/viewer/?uri=github.com/sdavtaker/cdboost)
 
 A header-only C++23 implementation of Parallel DEVS (PDEVS) simulation.
 
