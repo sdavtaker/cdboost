@@ -28,22 +28,8 @@
 #pragma once
 
 #include <cdboost/concepts.hpp>
-#include <limits>
 
 namespace cdboost {
-
-    // Customization point: specialize to provide a meaningful infinity sentinel for TIME
-    // types where std::numeric_limits<TIME>::has_infinity is false (e.g. boost::rational).
-    // The returned value must compare greater than any valid simulation time.
-    // See include/cdboost/rational_time.hpp for an example specialization.
-    template <class TIME> struct time_inf {
-        static TIME value() {
-            static_assert(std::numeric_limits<TIME>::has_infinity,
-                          "Specialize cdboost::time_inf<TIME> to provide an infinity sentinel. "
-                          "See include/cdboost/rational_time.hpp for an example.");
-            return std::numeric_limits<TIME>::infinity();
-        }
-    };
 
     template <class TIME>
         requires cdboost::concepts::Time<TIME>
