@@ -33,11 +33,70 @@
 #include <cdboost/model.hpp>
 #include <limits>
 
+// std::numeric_limits specialization for boost::rational<int>.
+// Boost does not provide this specialization; we define it so boost::rational<int>
+// satisfies cdboost::concepts::Time (and cadmium::concepts::Time).
+// The infinity sentinel is {INT_MAX, 1} — greater than any representable rational time.
+// All scalar members are provided to avoid missing-member errors in Boost's internal
+// template metaprogramming (which reads std::numeric_limits of arbitrary types).
+namespace std {
+    template <> struct numeric_limits<boost::rational<int>> {
+        static constexpr bool is_specialized    = true;
+        static constexpr bool is_signed         = true;
+        static constexpr bool is_integer        = false;
+        static constexpr bool is_exact          = true;
+        static constexpr bool has_infinity      = true;
+        static constexpr bool has_quiet_NaN     = false;
+        static constexpr bool has_signaling_NaN = false;
+        static constexpr bool is_bounded        = true;
+        static constexpr bool is_modulo         = false;
+        static constexpr bool is_iec559         = false;
+        static constexpr bool traps             = false;
+        static constexpr bool tinyness_before   = false;
+        static constexpr int radix              = 2;
+        static constexpr int digits             = 0;
+        static constexpr int digits10           = 0;
+        static constexpr int max_digits10       = 0;
+        static constexpr int min_exponent       = 0;
+        static constexpr int min_exponent10     = 0;
+        static constexpr int max_exponent       = 0;
+        static constexpr int max_exponent10     = 0;
+
+        static boost::rational<int> infinity() noexcept {
+            return boost::rational<int>{numeric_limits<int>::max(), 1};
+        }
+        static boost::rational<int> min() noexcept {
+            return boost::rational<int>{numeric_limits<int>::min(), 1};
+        }
+        static boost::rational<int> max() noexcept {
+            return boost::rational<int>{numeric_limits<int>::max() - 1, 1};
+        }
+        static boost::rational<int> lowest() noexcept {
+            return boost::rational<int>{numeric_limits<int>::min(), 1};
+        }
+        static boost::rational<int> quiet_NaN() noexcept {
+            return boost::rational<int>{};
+        }
+        static boost::rational<int> signaling_NaN() noexcept {
+            return boost::rational<int>{};
+        }
+        static boost::rational<int> denorm_min() noexcept {
+            return boost::rational<int>{1, numeric_limits<int>::max()};
+        }
+        static boost::rational<int> epsilon() noexcept {
+            return boost::rational<int>{1, numeric_limits<int>::max()};
+        }
+        static boost::rational<int> round_error() noexcept {
+            return boost::rational<int>{};
+        }
+    };
+} // namespace std
+
 namespace cdboost {
 
     template <> struct time_inf<boost::rational<int>> {
         static boost::rational<int> value() {
-            return boost::rational<int>{std::numeric_limits<int>::max(), 1};
+            return std::numeric_limits<boost::rational<int>>::infinity();
         }
     };
 

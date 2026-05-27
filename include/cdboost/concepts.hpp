@@ -35,14 +35,12 @@ namespace cdboost {
     // Customization point: specialize for TIME types where
     // std::numeric_limits<TIME>::has_infinity is false (e.g. boost::rational).
     // The returned value must compare greater than any valid simulation time.
-    // See include/cdboost/rational_time.hpp for an example specialization.
+    // See include/cdboost/rational_time.hpp for an example.
     //
-    // The default implementation is enabled only when has_infinity is true,
-    // so omitting a required specialization is caught at concept-check time.
+    // For any type satisfying cdboost::concepts::Time, has_infinity is guaranteed
+    // true, so the default implementation is always safe to call.
     template <class TIME> struct time_inf {
-        static TIME value()
-            requires(std::numeric_limits<TIME>::has_infinity)
-        {
+        static TIME value() {
             return std::numeric_limits<TIME>::infinity();
         }
     };
@@ -56,23 +54,20 @@ namespace cdboost {
         //   - regular: copyable + default-constructible (TIME _last{}, _next{} in coordinator)
         //   - operator+(T,T)->T  used as  _last + model->advance()
         //   - operator-(T,T)->T  used as  t - _last, passed to external/confluence transitions
-        //   - cdboost::time_inf<T>::value(): must compile and return T; the value MUST be
-        //     greater than any valid simulation time. For IEEE-754 types the default
-        //     time_inf<T> delegates to std::numeric_limits<T>::infinity() automatically.
-        //     For other types (e.g. boost::rational), specialize cdboost::time_inf<T>
-        //     (see include/cdboost/rational_time.hpp).
+        //   - std::numeric_limits<T>::has_infinity must be true, and infinity() must return T.
+        //     The value MUST be greater than any valid simulation time. For IEEE-754 types
+        //     this is automatic. For other types, specialize std::numeric_limits<T> with
+        //     has_infinity=true and a meaningful sentinel. See rational_time.hpp for an example.
         //
-        // Note: cadmium::concepts::Time checks std::numeric_limits<T>::infinity() directly
-        // instead of cdboost::time_inf<T>::value(). The arithmetic and ordering requirements
-        // are identical; only the infinity gate differs. A type satisfying both concepts
-        // requires either IEEE-754 infinity or specializations of both time_inf<T> and
-        // std::numeric_limits<T> (with has_infinity=true and a meaningful sentinel).
+        // This concept is identical to cadmium::concepts::Time so that a single time type
+        // satisfies both simulators without adaptation.
         template <typename T>
         concept Time = std::totally_ordered<T> && std::regular<T> && requires(T a, T b) {
             { a + b } -> std::same_as<T>;
             { a - b } -> std::same_as<T>;
         } && requires {
-            { cdboost::time_inf<T>::value() } -> std::convertible_to<T>;
+            requires std::numeric_limits<T>::has_infinity;
+            { std::numeric_limits<T>::infinity() } -> std::convertible_to<T>;
         };
 
     } // namespace concepts
