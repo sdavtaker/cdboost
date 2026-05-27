@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.28)
-project(cdboost VERSION 0.3.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
+# Toolchain must be set before project() so CMake loads vcpkg during compiler detection.
 if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
         CACHE STRING "")
 endif()
+
+project(cdboost VERSION 0.3.0 LANGUAGES CXX)
+
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Boost REQUIRED COMPONENTS rational)
 find_package(spdlog CONFIG REQUIRED)
@@ -18,11 +18,16 @@ target_include_directories(cdboost INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
+target_compile_features(cdboost INTERFACE cxx_std_23)
 target_link_libraries(cdboost INTERFACE Boost::boost spdlog::spdlog)
-target_compile_options(cdboost INTERFACE -Wall -Wextra -pedantic)
+# Warnings apply only when building from source tree, not when installed via vcpkg.
+target_compile_options(cdboost INTERFACE
+    $<BUILD_INTERFACE:-Wall -Wextra -pedantic>
+)
 
-option(CDBOOST_BUILD_TESTS "Build tests" ON)
-option(CDBOOST_BUILD_EXAMPLES "Build examples" ON)
+# Default to ON only when this is the top-level project; OFF when consumed via add_subdirectory.
+option(CDBOOST_BUILD_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
+option(CDBOOST_BUILD_EXAMPLES "Build examples" ${PROJECT_IS_TOP_LEVEL})
 
 if(CDBOOST_BUILD_TESTS)
     enable_testing()
@@ -36,6 +41,7 @@ endif()
 find_program(CLANG_FORMAT clang-format)
 if(CLANG_FORMAT)
     file(GLOB_RECURSE ALL_SOURCE_FILES
+        CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/test/*.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/example/*.cpp"
