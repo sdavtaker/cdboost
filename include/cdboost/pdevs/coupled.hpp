@@ -40,7 +40,9 @@ namespace cdboost {
         /**
          * @brief The coupled class represents PDEVS coupled models
          */
-        template <class TIME, class MSG> class coupled : public model<TIME> {
+        template <class TIME, class MSG>
+            requires cdboost::concepts::Time<TIME>
+        class coupled : public model<TIME> {
           protected:
             /**
              * @brief The coupled_description struct provides the necesary data for Coordinators to
@@ -107,7 +109,9 @@ namespace cdboost {
          * @brief The flattened_coupled class represents a coupled model PDEVS that has a single
          * level
          */
-        template <class TIME, class MSG> class flattened_coupled : public coupled<TIME, MSG> {
+        template <class TIME, class MSG>
+            requires cdboost::concepts::Time<TIME>
+        class flattened_coupled : public coupled<TIME, MSG> {
           public:
             flattened_coupled(std::initializer_list<std::shared_ptr<model<TIME>>> models,
                               std::initializer_list<std::shared_ptr<model<TIME>>> eic,

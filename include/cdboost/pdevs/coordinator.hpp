@@ -67,6 +67,7 @@ namespace cdboost {
         template <class TIME, class MSG,
                   template <class, class> class FEL =
                       nullqueue> // nullqueue FEL means no structure and pool from models.
+            requires cdboost::concepts::Time<TIME>
         class coordinator {
             // We assume that FEL interface is compatible to queue.h interface for now.
             // also we assume there is not cheap way to do the removal of elements when changing
@@ -347,7 +348,9 @@ namespace cdboost {
         };
 
         // specialiazation for pooling to models in place of using a FEL.
-        template <class TIME, class MSG> class coordinator<TIME, MSG, nullqueue> {
+        template <class TIME, class MSG>
+            requires cdboost::concepts::Time<TIME>
+        class coordinator<TIME, MSG, nullqueue> {
             TIME _last; // last transition time
             TIME _next; // next transition scheduled
             // used when coordinating

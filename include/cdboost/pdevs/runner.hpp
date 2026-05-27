@@ -45,6 +45,7 @@ namespace cdboost {
          * displays the results.
          */
         template <class TIME, class MSG, template <class, class> class FEL = nullqueue>
+            requires cdboost::concepts::Time<TIME>
         class runner {
             TIME _next;
             std::shared_ptr<coordinator<TIME, MSG, nullqueue>> _coordinator;

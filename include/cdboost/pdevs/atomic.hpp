@@ -34,7 +34,9 @@
 namespace cdboost {
     namespace pdevs {
 
-        template <class TIME, class MSG> class atomic : public model<TIME> {
+        template <class TIME, class MSG>
+            requires cdboost::concepts::Time<TIME>
+        class atomic : public model<TIME> {
           public:
             using time_type    = TIME;
             using message_type = MSG;
