@@ -27,30 +27,32 @@
 
 #pragma once
 
-#include <cdboost/concepts.hpp>
+#include <concepts>
 #include <limits>
 
-namespace cdboost {
+namespace cdboost::concepts {
 
-    // Customization point: specialize to provide a meaningful infinity sentinel for TIME
-    // types where std::numeric_limits<TIME>::has_infinity is false (e.g. boost::rational).
-    // The returned value must compare greater than any valid simulation time.
-    // See include/cdboost/rational_time.hpp for an example specialization.
-    template <class TIME> struct time_inf {
-        static TIME value() {
-            static_assert(std::numeric_limits<TIME>::has_infinity,
-                          "Specialize cdboost::time_inf<TIME> to provide an infinity sentinel. "
-                          "See include/cdboost/rational_time.hpp for an example.");
-            return std::numeric_limits<TIME>::infinity();
-        }
+    // Time concept: contract for any type used as virtual time in a cdboost simulation.
+    //
+    // Required operations (all used by the engine at runtime):
+    //   - totally ordered: <, >, ==, != for FEL ordering and transition guards
+    //   - regular: copyable + default-constructible (TIME _last{}, _next{} in coordinator)
+    //   - operator+(T,T)->T  used as  _last + model->advance()
+    //   - operator-(T,T)->T  used as  t - _last, passed to external/confluence transitions
+    //   - std::numeric_limits<T>::infinity(): expression must compile and return T.
+    //     The value MUST be greater than any valid simulation time. For IEEE-754 types
+    //     this is automatic. For other types, specialize std::numeric_limits<T> with
+    //     has_infinity=true and a meaningful sentinel, OR specialize cdboost::time_inf<T>
+    //     (see include/cdboost/model.hpp and include/cdboost/rational_time.hpp).
+    //
+    // This concept is intentionally identical to cadmium::concepts::Time so that a
+    // single time type satisfies both simulators without adaptation.
+    template <typename T>
+    concept Time = std::totally_ordered<T> && std::regular<T> && requires(T a, T b) {
+        { a + b } -> std::same_as<T>;
+        { a - b } -> std::same_as<T>;
+    } && requires {
+        { std::numeric_limits<T>::infinity() } -> std::convertible_to<T>;
     };
 
-    template <class TIME>
-        requires cdboost::concepts::Time<TIME>
-    class model {
-      public:
-        virtual ~model()    = default;
-        const TIME infinity = time_inf<TIME>::value();
-    };
-
-} // namespace cdboost
+} // namespace cdboost::concepts

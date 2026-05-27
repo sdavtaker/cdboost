@@ -27,6 +27,7 @@
 
 #pragma once
 
+#include <cdboost/concepts.hpp>
 #include <cdboost/convenience.hpp>
 #include <cdboost/log.hpp>
 #include <cdboost/pdevs/atomic.hpp>
