@@ -101,12 +101,3 @@ namespace cdboost {
     };
 
 } // namespace cdboost
-
-namespace cdboost::log {
-
-    template <>
-    inline double to_sim_double<boost::rational<int>>(const boost::rational<int> &t) noexcept {
-        return static_cast<double>(t.numerator()) / static_cast<double>(t.denominator());
-    }
-
-} // namespace cdboost::log

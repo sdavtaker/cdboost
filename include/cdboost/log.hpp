@@ -28,14 +28,15 @@
 #pragma once
 
 #include <chrono>
+#include <concepts>
 #include <exception>
 #include <format>
 #include <optional>
-#include <string>
-#include <string_view>
-
 #include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
+#include <sstream>
+#include <string>
+#include <string_view>
 
 namespace cdboost::log {
 
@@ -50,10 +51,14 @@ namespace cdboost::log {
 
         inline std::string_view level_str(level l) noexcept {
             switch (l) {
-            case level::debug: return "debug";
-            case level::info:  return "info";
-            case level::warn:  return "warn";
-            case level::error: return "error";
+            case level::debug:
+                return "debug";
+            case level::info:
+                return "info";
+            case level::warn:
+                return "warn";
+            case level::error:
+                return "error";
             }
             return "info";
         }
@@ -62,23 +67,32 @@ namespace cdboost::log {
             std::string out;
             out.reserve(s.size());
             for (char c : s) {
-                if (c == '"')       out += "\\\"";
-                else if (c == '\\') out += "\\\\";
-                else if (c == '\n') out += "\\n";
-                else if (c == '\r') out += "\\r";
-                else if (c == '\t') out += "\\t";
-                else                out += c;
+                if (c == '"')
+                    out += "\\\"";
+                else if (c == '\\')
+                    out += "\\\\";
+                else if (c == '\n')
+                    out += "\\n";
+                else if (c == '\r')
+                    out += "\\r";
+                else if (c == '\t')
+                    out += "\\t";
+                else
+                    out += c;
             }
             return out;
         }
 
     } // namespace detail
 
-    // Converts a simulation TIME value to double for the optional sim_time JSON field.
-    // Specialize for types where static_cast<double> is insufficient (e.g. boost::rational).
-    template <typename T>
-    double to_sim_double(const T &t) noexcept {
-        return static_cast<double>(t);
+    // Converts a simulation TIME value to its native string representation for the sim_time
+    // JSON field. Uses full precision for floating-point; streams natively for all other types.
+    template <typename T> std::string to_sim_string(const T &t) {
+        if constexpr (std::floating_point<T>)
+            return std::format("{:.17g}", t);
+        std::ostringstream oss;
+        oss << t;
+        return oss.str();
     }
 
     inline void init() {
@@ -91,23 +105,22 @@ namespace cdboost::log {
     }
 
     inline void emit(level lvl, std::string_view event, std::string_view msg,
-                     std::optional<double> sim_time = std::nullopt) {
+                     std::optional<std::string> sim_time = std::nullopt) {
         auto &log = detail::instance();
-        if (!log) return;
+        if (!log)
+            return;
 
         auto now = std::chrono::system_clock::now();
         auto ts  = std::format("{0:%Y-%m-%dT%H:%M:%S}Z",
                                std::chrono::floor<std::chrono::milliseconds>(now));
 
-        std::string line = std::format(
-            R"({{"ts":"{}","level":"{}","event":"{}","msg":"{}"}})",
-            ts, detail::level_str(lvl),
-            detail::escape_json(event), detail::escape_json(msg));
+        std::string line = std::format(R"({{"ts":"{}","level":"{}","event":"{}","msg":"{}"}})", ts,
+                                       detail::level_str(lvl), detail::escape_json(event),
+                                       detail::escape_json(msg));
 
         if (sim_time.has_value()) {
-            // Insert sim_time before the closing brace
             line.pop_back();
-            line += std::format(R"(,"sim_time":{:.17g}}})", *sim_time);
+            line += std::format(R"(,"sim_time":"{}"}})", detail::escape_json(*sim_time));
         }
 
         log->info(line);
@@ -115,7 +128,8 @@ namespace cdboost::log {
 
     inline void flush() noexcept {
         auto &log = detail::instance();
-        if (log) log->flush();
+        if (log)
+            log->flush();
     }
 
     // Logs the exception at error level, flushes, then re-throws.
