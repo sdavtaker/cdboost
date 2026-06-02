@@ -105,7 +105,7 @@ namespace cdboost {
                             return false;
                     });
                     if (zeros) {
-                        _next = TIME{0};
+                        _next = TIME{};
                         _counter += mb.size() - zeros;
 
                     } else {
