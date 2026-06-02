@@ -107,7 +107,7 @@ namespace cdboost {
                  */
                 void confluence(const std::vector<MSG> &mb, const TIME & /*t*/) override {
                     internal();
-                    external(mb, TIME(0));
+                    external(mb, TIME{});
                 }
             };
 
