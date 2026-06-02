@@ -57,7 +57,7 @@ namespace cdboost {
                     return;
                 for (auto &msg : m) {
                     cdboost::log::emit(cdboost::log::level::info, "tick", _msg_formatter(msg),
-                                       cdboost::log::to_sim_double(t));
+                                       cdboost::log::to_sim_string(t));
                 }
             }
 
@@ -97,7 +97,7 @@ namespace cdboost {
             TIME runUntil(const TIME &t) noexcept {
                 auto wall_start = std::chrono::steady_clock::now();
                 cdboost::log::emit(cdboost::log::level::info, "simulation_start",
-                                   "Starting simulation", cdboost::log::to_sim_double(_next));
+                                   "Starting simulation", cdboost::log::to_sim_string(_next));
 
                 while (_next < t) {
                     auto out = _coordinator->collectOutputs(_next);
@@ -108,7 +108,7 @@ namespace cdboost {
                 }
 
                 cdboost::log::emit(cdboost::log::level::info, "simulation_end", "Simulation ended",
-                                   cdboost::log::to_sim_double(t));
+                                   cdboost::log::to_sim_string(t));
 
                 auto wall_end = std::chrono::steady_clock::now();
                 auto elapsed  = std::chrono::duration<double>(wall_end - wall_start).count();
@@ -127,7 +127,7 @@ namespace cdboost {
                 auto wall_start = std::chrono::steady_clock::now();
                 cdboost::log::emit(cdboost::log::level::info, "simulation_start",
                                    "Starting simulation until passivation",
-                                   cdboost::log::to_sim_double(_next));
+                                   cdboost::log::to_sim_string(_next));
 
                 while (_next != infinity) {
                     auto out = _coordinator->collectOutputs(_next);
