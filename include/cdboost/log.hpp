@@ -31,6 +31,7 @@
 #include <concepts>
 #include <exception>
 #include <format>
+#include <limits>
 #include <optional>
 #include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
@@ -87,12 +88,16 @@ namespace cdboost::log {
 
     // Converts a simulation TIME value to its native string representation for the sim_time
     // JSON field. Uses full precision for floating-point; streams natively for all other types.
-    template <typename T> std::string to_sim_string(const T &t) {
-        if constexpr (std::floating_point<T>)
-            return std::format("{:.{}g}", t, std::numeric_limits<T>::max_digits10);
-        std::ostringstream oss;
-        oss << t;
-        return oss.str();
+    template <typename T> std::string to_sim_string(const T &t) noexcept {
+        try {
+            if constexpr (std::floating_point<T>)
+                return std::format("{:.{}g}", t, std::numeric_limits<T>::max_digits10);
+            std::ostringstream oss;
+            oss << t;
+            return oss.str();
+        } catch (...) {
+            return "?";
+        }
     }
 
     inline void init() {
