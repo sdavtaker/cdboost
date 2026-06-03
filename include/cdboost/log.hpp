@@ -89,7 +89,7 @@ namespace cdboost::log {
     // JSON field. Uses full precision for floating-point; streams natively for all other types.
     template <typename T> std::string to_sim_string(const T &t) {
         if constexpr (std::floating_point<T>)
-            return std::format("{:.17g}", t);
+            return std::format("{:.{}g}", t, std::numeric_limits<T>::max_digits10);
         std::ostringstream oss;
         oss << t;
         return oss.str();
