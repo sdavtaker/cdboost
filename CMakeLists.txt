@@ -6,7 +6,7 @@ if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
         CACHE STRING "")
 endif()
 
-project(cdboost VERSION 0.3.1 LANGUAGES CXX)
+project(cdboost VERSION 0.3.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -14,9 +14,9 @@ find_package(Boost REQUIRED COMPONENTS rational)
 find_package(spdlog CONFIG REQUIRED)
 
 add_library(cdboost INTERFACE)
+add_library(cdboost::cdboost ALIAS cdboost)
 target_include_directories(cdboost INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
 )
 target_compile_features(cdboost INTERFACE cxx_std_23)
 target_link_libraries(cdboost INTERFACE Boost::boost spdlog::spdlog)
@@ -24,6 +24,56 @@ target_link_libraries(cdboost INTERFACE Boost::boost spdlog::spdlog)
 target_compile_options(cdboost INTERFACE
     $<BUILD_INTERFACE:-Wall -Wextra -pedantic>
 )
+
+# ============================================================================
+# Installation
+# ============================================================================
+
+option(CDBOOST_INSTALL "Install cdboost targets and headers" ${PROJECT_IS_TOP_LEVEL})
+
+if(CDBOOST_INSTALL)
+    include(GNUInstallDirs)
+
+    install(
+        DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/cdboost/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cdboost
+        FILES_MATCHING PATTERN "*.hpp"
+    )
+
+    install(
+        TARGETS cdboost
+        EXPORT cdboostTargets
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
+
+    install(
+        EXPORT cdboostTargets
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cdboost
+        NAMESPACE cdboost::
+        FILE cdboostTargets.cmake
+    )
+
+    include(CMakePackageConfigHelpers)
+
+    configure_package_config_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cdboostConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/cdboostConfig.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cdboost
+    )
+
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/cdboostConfigVersion.cmake
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMinorVersion
+    )
+
+    install(
+        FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/cdboostConfig.cmake
+            ${CMAKE_CURRENT_BINARY_DIR}/cdboostConfigVersion.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cdboost
+    )
+endif()
 
 # Default to ON only when this is the top-level project; OFF when consumed via add_subdirectory.
 option(CDBOOST_BUILD_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
