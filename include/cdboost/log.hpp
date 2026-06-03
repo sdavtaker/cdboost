@@ -94,6 +94,7 @@ namespace cdboost::log {
                 return std::format("{:.{}g}", t, std::numeric_limits<T>::max_digits10);
             else if constexpr (requires(std::ostream &os) { os << t; }) {
                 std::ostringstream oss;
+                oss.imbue(std::locale::classic());
                 oss << t;
                 return oss.str();
             } else {

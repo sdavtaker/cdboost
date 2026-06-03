@@ -19,7 +19,7 @@ Every log record contains exactly these fields:
 
 | Field      | Type   | Description |
 |------------|--------|-------------|
-| `sim_time` | string | Simulation time in the type's native string representation (e.g. `"1.0"` for float/double, `"1/10"` for rational, `"100"` for fixed-point). **Never replaces `ts`** — `ts` is always wall-clock time. `sim_time` carries the logical simulation time. |
+| `sim_time` | string | Simulation time in the type's native string representation (e.g. `"0.5"` for float/double, `"1/10"` for rational, `"100"` for fixed-point). Trailing zeros are suppressed for floating-point (`"1"` not `"1.0"`). **Never replaces `ts`** — `ts` is always wall-clock time. `sim_time` carries the logical simulation time. |
 
 ## ts vs sim_time
 
