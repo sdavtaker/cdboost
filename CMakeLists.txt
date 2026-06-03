@@ -6,7 +6,7 @@ if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
         CACHE STRING "")
 endif()
 
-project(cdboost VERSION 0.3.1 LANGUAGES CXX)
+project(cdboost VERSION 0.3.2 LANGUAGES CXX)
 
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -14,6 +14,7 @@ find_package(Boost REQUIRED COMPONENTS rational)
 find_package(spdlog CONFIG REQUIRED)
 
 add_library(cdboost INTERFACE)
+add_library(cdboost::cdboost ALIAS cdboost)
 target_include_directories(cdboost INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
@@ -23,6 +24,52 @@ target_link_libraries(cdboost INTERFACE Boost::boost spdlog::spdlog)
 # Warnings apply only when building from source tree, not when installed via vcpkg.
 target_compile_options(cdboost INTERFACE
     $<BUILD_INTERFACE:-Wall -Wextra -pedantic>
+)
+
+# ============================================================================
+# Installation
+# ============================================================================
+
+include(GNUInstallDirs)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/cdboost/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cdboost
+    FILES_MATCHING PATTERN "*.hpp"
+)
+
+install(
+    TARGETS cdboost
+    EXPORT cdboostTargets
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+    EXPORT cdboostTargets
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cdboost
+    NAMESPACE cdboost::
+    FILE cdboostTargets.cmake
+)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cdboostConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cdboostConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cdboost
+)
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/cdboostConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/cdboostConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/cdboostConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cdboost
 )
 
 # Default to ON only when this is the top-level project; OFF when consumed via add_subdirectory.
