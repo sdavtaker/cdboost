@@ -92,9 +92,13 @@ namespace cdboost::log {
         try {
             if constexpr (std::floating_point<T>)
                 return std::format("{:.{}g}", t, std::numeric_limits<T>::max_digits10);
-            std::ostringstream oss;
-            oss << t;
-            return oss.str();
+            else if constexpr (requires(std::ostream &os) { os << t; }) {
+                std::ostringstream oss;
+                oss << t;
+                return oss.str();
+            } else {
+                return "?";
+            }
         } catch (...) {
             return "?";
         }
