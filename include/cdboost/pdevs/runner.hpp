@@ -70,7 +70,7 @@ namespace cdboost {
              *        field. Called once per message at each output-producing tick.
              */
             explicit runner(std::shared_ptr<coupled<TIME, MSG>> cm, const TIME &init_time,
-                            std::function<std::string(const MSG &)> msg_formatter) noexcept
+                            std::function<std::string(const MSG &)> msg_formatter)
                 : _msg_formatter(std::move(msg_formatter)), infinity(cm->infinity) {
                 _coordinator = std::make_shared<coordinator<TIME, MSG, nullqueue>>(cm);
                 _next        = _coordinator->init(init_time);
@@ -82,7 +82,7 @@ namespace cdboost {
              * @param cm is the coupled model to simulate.
              * @param init_time is the initial time of the simulation.
              */
-            explicit runner(std::shared_ptr<coupled<TIME, MSG>> cm, const TIME &init_time) noexcept
+            explicit runner(std::shared_ptr<coupled<TIME, MSG>> cm, const TIME &init_time)
                 : infinity(cm->infinity) {
                 _coordinator = std::make_shared<coordinator<TIME, MSG, nullqueue>>(cm);
                 _next        = _coordinator->init(init_time);
@@ -94,7 +94,7 @@ namespace cdboost {
              * @param t is the limit time for the simulation.
              * @return the TIME of the next event to happen when simulation stopped.
              */
-            TIME runUntil(const TIME &t) noexcept {
+            TIME runUntil(const TIME &t) {
                 auto wall_start = std::chrono::steady_clock::now();
                 cdboost::log::emit(cdboost::log::level::info, "simulation_start",
                                    "Starting simulation", cdboost::log::to_sim_string(_next));
@@ -123,7 +123,7 @@ namespace cdboost {
              * @brief runUntilPassivate starts the simulation and stops when there is no next
              * internal event to happen.
              */
-            void runUntilPassivate() noexcept {
+            void runUntilPassivate() {
                 auto wall_start = std::chrono::steady_clock::now();
                 cdboost::log::emit(cdboost::log::level::info, "simulation_start",
                                    "Starting simulation until passivation",

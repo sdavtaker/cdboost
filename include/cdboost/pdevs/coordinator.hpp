@@ -117,6 +117,16 @@ namespace cdboost {
                 auto desc = c->get_description();
                 std::map<void *, std::shared_ptr<coordinator<TIME, MSG, FEL>>>
                     model_to_container; // using void* to only check address match
+
+                // Safe lookup: throws if a coupling references a model not in the models list.
+                auto get_container = [&model_to_container](void *key) {
+                    auto it = model_to_container.find(key);
+                    if (it == model_to_container.end())
+                        throw std::logic_error(
+                            "coupling references a model not present in the models list");
+                    return it->second;
+                };
+
                 for (auto &m : desc.models) {
                     bool to_external_out;
                     // is current model connected to output?
@@ -163,18 +173,18 @@ namespace cdboost {
                                 if (int_sec_coupled == nullptr)
                                     throw std::logic_error("internal coupling destination is "
                                                            "neither atomic nor coupled");
-                                to_internals.push_back(model_to_container[int_sec_coupled.get()]);
+                                to_internals.push_back(get_container(int_sec_coupled.get()));
                             } else { // destination atomic
-                                to_internals.push_back(model_to_container[int_sec_atomic.get()]);
+                                to_internals.push_back(get_container(int_sec_atomic.get()));
                             }
                         }
                     }
                     // assigning
-                    model_to_container[m.get()]->_internal_connections = to_internals;
+                    get_container(m.get())->_internal_connections = to_internals;
                 }
                 // external_input_coupling
                 for (auto &a : desc.external_input_coupling) {
-                    _external_input_coupling.push_back(model_to_container[a.get()]);
+                    _external_input_coupling.push_back(get_container(a.get()));
                 }
             }
 
@@ -387,6 +397,15 @@ namespace cdboost {
                 auto desc = c->get_description();
                 std::map<void *, std::shared_ptr<coordinator<TIME, MSG, nullqueue>>>
                     model_to_container; // using void* to only check address match
+
+                auto get_container = [&model_to_container](void *key) {
+                    auto it = model_to_container.find(key);
+                    if (it == model_to_container.end())
+                        throw std::logic_error(
+                            "coupling references a model not present in the models list");
+                    return it->second;
+                };
+
                 for (auto &m : desc.models) {
                     bool to_external_out;
                     // is current model connected to output?
@@ -430,18 +449,18 @@ namespace cdboost {
                                 if (int_sec_coupled == nullptr)
                                     throw std::logic_error("internal coupling destination is "
                                                            "neither atomic nor coupled");
-                                to_internals.push_back(model_to_container[int_sec_coupled.get()]);
+                                to_internals.push_back(get_container(int_sec_coupled.get()));
                             } else { // destination atomic
-                                to_internals.push_back(model_to_container[int_sec_atomic.get()]);
+                                to_internals.push_back(get_container(int_sec_atomic.get()));
                             }
                         }
                     }
                     // assigning
-                    model_to_container[m.get()]->_internal_connections = to_internals;
+                    get_container(m.get())->_internal_connections = to_internals;
                 }
                 // external_input_coupling
                 for (auto &a : desc.external_input_coupling) {
-                    _external_input_coupling.push_back(model_to_container[a.get()]);
+                    _external_input_coupling.push_back(get_container(a.get()));
                 }
             }
 
