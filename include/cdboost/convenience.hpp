@@ -34,7 +34,7 @@ namespace cdboost {
 
     template <class MODEL, typename... Args>
     std::shared_ptr<pdevs::atomic<typename MODEL::time_type, typename MODEL::message_type>>
-    make_atomic_ptr(Args... args) noexcept {
+    make_atomic_ptr(Args... args) {
         return std::make_shared<MODEL>(std::forward<Args>(args)...);
     }
 

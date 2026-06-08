@@ -45,7 +45,7 @@ namespace cdboost {
             atomic() noexcept : modelName("atomic") {}
             explicit atomic(const std::string &name) noexcept : modelName(name) {}
 
-            virtual void internal() noexcept                                   = 0;
+            virtual void internal()                                            = 0;
             virtual TIME advance() const noexcept                              = 0;
             virtual std::vector<MSG> out() const noexcept                      = 0;
             virtual void external(const std::vector<MSG> &mb, const TIME &t)   = 0;

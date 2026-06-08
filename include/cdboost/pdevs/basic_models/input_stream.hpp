@@ -110,8 +110,14 @@ namespace cdboost {
                           std::stringstream ss;
                           ss.str(s);
                           ss >> tmp_next;
+                          if (ss.fail())
+                              throw std::invalid_argument(
+                                  "input_stream: failed to parse time field: \"" + s + "\"");
                           t_next = static_cast<TIME>(tmp_next);
                           ss >> tmp_next_out;
+                          if (ss.fail())
+                              throw std::invalid_argument(
+                                  "input_stream: failed to parse message field: \"" + s + "\"");
                           m_next = static_cast<MSG>(tmp_next_out);
                           std::string thrash;
                           ss >> thrash;
@@ -150,7 +156,7 @@ namespace cdboost {
                 /**
                  * @brief internal function reads the stream and prepares next event.
                  */
-                void internal() noexcept override {
+                void internal() override {
                     _last = _next;
                     fetchUntilTimeAdvances();
                 }

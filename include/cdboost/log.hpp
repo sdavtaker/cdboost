@@ -105,11 +105,26 @@ namespace cdboost::log {
         }
     }
 
-    inline void init() {
+    inline void init(level min_level = level::info) {
         auto sink = std::make_shared<spdlog::sinks::stdout_sink_mt>();
         auto log  = std::make_shared<spdlog::logger>("cdboost", sink);
         log->set_pattern("%v"); // verbatim: JSON is pre-formatted
-        log->set_level(spdlog::level::debug);
+        spdlog::level::level_enum spdlvl = spdlog::level::info;
+        switch (min_level) {
+        case level::debug:
+            spdlvl = spdlog::level::debug;
+            break;
+        case level::info:
+            spdlvl = spdlog::level::info;
+            break;
+        case level::warn:
+            spdlvl = spdlog::level::warn;
+            break;
+        case level::error:
+            spdlvl = spdlog::level::err;
+            break;
+        }
+        log->set_level(spdlvl);
         spdlog::flush_on(spdlog::level::err);
         detail::instance() = log;
     }
