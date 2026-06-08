@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-06-08
+
+### Fixed
+- `event_stream` and `input_stream` default parser: check `ss.fail()` after each
+  `>>` extraction; throw `std::invalid_argument` with the offending line on malformed
+  input instead of silently using default-constructed values.
+- `atomic::internal()`, `event_stream::internal()`, `input_stream::internal()`:
+  remove `noexcept` — these call functions that throw, causing `std::terminate`
+  instead of a catchable exception.
+- `runner` constructors, `runUntil()`, `runUntilPassivate()`: remove `noexcept` —
+  delegate to coordinator methods that can throw.
+- `make_atomic_ptr()`: remove `noexcept` — `std::make_shared` can throw `bad_alloc`.
+- `coordinator`: replace `map::operator[]` lookups with a safe helper that throws
+  `std::logic_error` when a coupling references a model not in the models list,
+  preventing silent null-pointer insertion and undefined behaviour.
+
+### Added
+- `log::init()` accepts an optional `min_level` parameter (default: `level::info`)
+  so callers can suppress info-level simulation noise while keeping error output.
+
 ## [0.3.2] - 2026-06-03
 
 ### Added
