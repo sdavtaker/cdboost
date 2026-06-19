@@ -105,6 +105,17 @@ namespace cdboost::log {
         }
     }
 
+    // Install a caller-provided spdlog logger (e.g. a test sink).
+    // The logger must already have the desired pattern and level set.
+    inline void set_logger(std::shared_ptr<spdlog::logger> logger) noexcept {
+        detail::instance() = std::move(logger);
+    }
+
+    // Remove the active logger; subsequent emit() calls become no-ops.
+    inline void reset_logger() noexcept {
+        detail::instance() = nullptr;
+    }
+
     inline void init(level min_level = level::info) {
         auto sink = std::make_shared<spdlog::sinks::stdout_sink_mt>();
         auto log  = std::make_shared<spdlog::logger>("cdboost", sink);
