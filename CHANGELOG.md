@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.4] - 2026-06-19
+
+### Added
+- `cdboost::log::set_logger(std::shared_ptr<spdlog::logger>)`: install a
+  caller-provided spdlog logger (e.g. a custom test sink) without touching
+  the implementation-detail `detail::instance()`.
+- `cdboost::log::reset_logger()`: remove the active logger so subsequent
+  `emit()` calls become no-ops.
+
 ## [0.3.3] - 2026-06-08
 
 ### Fixed
@@ -80,7 +89,9 @@ structured NDJSON logging added.
 
 Initial PDEVS implementation (boost::simulation namespace, BJam build).
 
-[Unreleased]: https://github.com/sdavtaker/cdboost/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/sdavtaker/cdboost/compare/v0.3.4...HEAD
+[0.3.4]: https://github.com/sdavtaker/cdboost/compare/v0.3.3...v0.3.4
+[0.3.3]: https://github.com/sdavtaker/cdboost/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/sdavtaker/cdboost/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/sdavtaker/cdboost/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/sdavtaker/cdboost/compare/v0.2.0...v0.3.0
