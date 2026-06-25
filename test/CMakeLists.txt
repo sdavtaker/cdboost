@@ -11,6 +11,8 @@ set(TEST_FILES
     pdevs_processor_test.cpp
     pdevs_runner_test.cpp
     pdevs_simulator_test.cpp
+    qss1_integrator_test.cpp
+    qss1_lotka_volterra_test.cpp
 )
 
 foreach(TEST_FILE ${TEST_FILES})
